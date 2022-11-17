@@ -91,7 +91,7 @@ def generateMap (seed=1, xpix=100, ypix=100, octaves = 2, multipleNoise = False)
         print(playable/total)
 
     ## Limpeza do mapa ##
-    #  cleanupMap(Map)
+    cleanupMap(Map)
 
     print(seed - 1)
     return Map,seed
@@ -113,14 +113,14 @@ def main ():
             return -1
 
     ## Variaveis de geracao para o mapa
-    xpix,ypix = 100,100
+    xpix,ypix = 25,25
     octaves = 2
     multipleNoise = True
     ## Obter mapa e seed usada no final ##
     Map,seed = generateMap(seed=seed, xpix=xpix, ypix=ypix, octaves=octaves, multipleNoise=multipleNoise)
 
     ## Escala para os quadrados do mapa ## 
-    scalex, scaley = 10,10
+    scalex, scaley = 30,30
     ## Tamanho para o texto ##
     textSize = 10
 
