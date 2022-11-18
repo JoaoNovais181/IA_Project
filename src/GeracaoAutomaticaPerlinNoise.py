@@ -113,7 +113,7 @@ def main ():
             return -1
 
     ## Variaveis de geracao para o mapa
-    xpix,ypix = 25,25
+    xpix,ypix = 25,20
     octaves = 2
     multipleNoise = True
     ## Obter mapa e seed usada no final ##
