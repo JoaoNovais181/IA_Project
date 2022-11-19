@@ -1,8 +1,11 @@
 import pygame
-
+import sys
 
 
 def desenhaMapa (Map):
+    print(Map)
+    xpix = len(Map[0])
+    ypix = len(Map)
     scalex, scaley = 30,30
     ## Tamanho para o texto ##
     textSize = 10
@@ -32,24 +35,17 @@ def desenhaMapa (Map):
     # screen.blit(text, textRect)
 
 
-    for y in range(0,len(Map)):
-        for x in range(0,len(Map[0])):
+    for y in range(0,ypix):
+        for x in range(0,xpix):
             ## Desenhar o mapa ##
-            pygame.draw.rect(screen, rideableColor if (Map[y][x] > ridealbleLimit) else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))
+            print(xpix, ypix, x, y)
+            # pygame.draw.rect(screen, rideableColor if (Map[y][x] > ridealbleLimit) else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))
+            pygame.draw.rect(screen, rideableColor if (Map[y][x]==" ") else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))
             ## Desenhar a grelha ##
             pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)
 
     ## Objeto colock para definir os frames por segundo ##
     clock = pygame.time.Clock()
-
-    with open("mapFile.txt", "w") as file:
-        for row in Map:
-            for col in row:
-                if col <= ridealbleLimit:
-                    file.write("#")
-                else:
-                    file.write("-")
-            file.write("\n")
 
     ## Game loop ##
     while True:
@@ -70,9 +66,9 @@ def carregaMapa (filename):
     with open(filename, "r") as mapFile:
         lines = mapFile.read().split("\n")
 
-        Map = [[c for c in line] for line in lines]
+        Map = [[c if c not in "PFS" else " " for c in line] for line in lines]
 
         return Map 
 
-Map = carregaMapa("mapaFase1.txt")
+Map = carregaMapa("./mapaFase1.txt")
 desenhaMapa(Map)
