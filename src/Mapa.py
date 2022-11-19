@@ -8,7 +8,7 @@ def desenhaMapa (Map):
     ypix = len(Map)
     scalex, scaley = 30,30
     ## Tamanho para o texto ##
-    textSize = 10
+    # textSize = 10
 
     ## Iniciar o pygame ##
     pygame.init()
@@ -34,17 +34,16 @@ def desenhaMapa (Map):
     # textRect.topleft = [0,scaley*ypix]
     # screen.blit(text, textRect)
 
-
-    for y in range(0,ypix):
-        for x in range(0,xpix):
-            ## Desenhar o mapa ##
+    for y in range(0, ypix):
+        for x in range(0, xpix):
+            # Desenhar o mapa ##
             print(xpix, ypix, x, y)
-            # pygame.draw.rect(screen, rideableColor if (Map[y][x] > ridealbleLimit) else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))
-            pygame.draw.rect(screen, rideableColor if (Map[y][x]==" ") else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))
-            ## Desenhar a grelha ##
-            pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)
+            # pygame.draw.rect(screen, rideableColor if (Map[y][x] > ridealbleLimit) else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))  # noqa: E501
+            pygame.draw.rect(screen, rideableColor if (Map[y][x]==" ") else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))  # noqa: E501
+            # Desenhar a grelha ##
+            pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)  # noqa: E203, E501 E231
 
-    ## Objeto colock para definir os frames por segundo ##
+    ## Objeto colock para definir os frames por segundo ## #noqa: E233
     clock = pygame.time.Clock()
 
     ## Game loop ##
@@ -70,5 +69,6 @@ def carregaMapa (filename):
 
         return Map 
 
-Map = carregaMapa("./mapaFase1.txt")
-desenhaMapa(Map)
+if __name__ == "__main__":
+    Map = carregaMapa("./mapaFase1.txt")
+    desenhaMapa(Map)

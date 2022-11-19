@@ -1,5 +1,6 @@
 import networkx as nx
 import math
+from Node import Node
 
 class Grafo:
 
@@ -8,6 +9,7 @@ class Grafo:
 		self.m_nodes  	 = []
 		# self.m_nodeID 	 = {}
 		self.m_graph  	 = {}
+		self.m_heuristic = {}
 		self.m_h      	 = {}
 
 	def __str__(self):
@@ -21,21 +23,26 @@ class Grafo:
 
 		if node1 not in self.m_nodes:
 			self.m_nodes.append(node1)
-			self.m_nodeID[node1] = self.nodeCounter
+			# self.m_nodeID[node1] = self.nodeCounter
+			node1.setID(self.nodeCounter)
 			self.nodeCounter += 1
-			slef.m_graph[self.m_nodeID[node1]] = set()
-		else 
+			# self.m_graph[self.m_nodeID[node1]] = set()
+			self.m_graph[node1.getID()] = set()
+		else: 
 			node1 = self.getNodeBySearchNode(node1)
 
 		if node2 not in self.m_nodes:
 			self.m_nodes.append(node2)
-			self.m_nodeID[node2] = self.nodeCounter
+			# self.m_nodeID[node2] = self.nodeCounter
+			node2.setID(self.nodeCounter)
 			self.nodeCounter += 1
-			slef.m_graph[self.m_nodeID[node2]] = set()
-		else 
+			# self.m_graph[self.m_nodeID[node2]] = set()
+			self.m_graph[node2.getID()] = set()
+		else:
 			node2 = self.getNodeBySearchNode(node2)
 
-		self.m_graph[this.m_nodeID[node1]].add((self.m_nodeID[node2], weight))
+		# self.m_graph[self.m_nodeID[node1]].add((self.m_nodeID[node2], weight))
+		self.m_graph[node1.getID()].add((node2.getID(), weight))
 
 	def getNodeBySearchNode(self, searchNode):
 
@@ -67,9 +74,13 @@ class Grafo:
 	def pathCost(self, path):
 		cost = 0
 		i = 0
-		for i in range(0,len(path)-1)
+		for i in range(0,len(path)-1):
 			cost += self.getArcCost(path[i].getID(), path[i+1].getID())
 
 		return cost
 
-	
+	def addHeuristic(self, state, heuristic):
+		pos,vel = state
+		node = Node(pos,vel)
+		n = self.getNodeBySearchNode(node)
+		if n is not None: self.m_heuristic[n.getID()] = heuristic
