@@ -29,7 +29,3 @@ class Node:
 
 	def __hash__(self):
 		return hash(self.pos[0] + self.pos[1] + self.vel[0] + self.vel[1])
-
-node = Node([0,0], [0,0])
-
-print(node, node.__hash__())
