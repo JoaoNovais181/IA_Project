@@ -52,7 +52,7 @@ def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2
         pygame.draw.polygon(surface, color, body_verts)
 
 
-def desenhaMapa (Map, path=None):
+def desenhaMapa (Map, path=None, custo=0):
     # print(Map)
     xpix = len(Map[0])
     ypix = len(Map)
@@ -93,6 +93,8 @@ def desenhaMapa (Map, path=None):
             pygame.draw.rect(screen, rideableColor if (Map[y][x]==" ") else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))  # noqa: E501
             # Desenhar a grelha ##
             pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)  # noqa: E203, E501 E231
+    
+    clock = pygame.time.Clock()
 
     if path is not None:
         radius = scalex * 0.25
@@ -109,15 +111,33 @@ def desenhaMapa (Map, path=None):
             fim = pygame.Vector2((xf,yf))
             # pygame.draw.line(screen, (0,0,0), (xi,yi), (xf,yf), width = int(scalex*0.1))
             draw_arrow(screen, inicio, fim, (0,0,0), 3, 10, 10)
-
-        for node in path:
-            pos = node.getPos()
+            pos = node1.getPos()
             x = pos[0]*scalex + scalex*0.5
             y = pos[1]*scaley + scaley*0.5
             pygame.draw.circle(screen, red, (x,y), radius)
+            pos = node2.getPos()
+            x = pos[0]*scalex + scalex*0.5
+            y = pos[1]*scaley + scaley*0.5
+            pygame.draw.circle(screen, red, (x,y), radius)
+            pygame.display.flip()
+
+            clock.tick(10)
+
+
+        # for node in path:
+        #     pos = node.getPos()
+        #     x = pos[0]*scalex + scalex*0.5
+        #     y = pos[1]*scaley + scaley*0.5
+        #     pygame.draw.circle(screen, red, (x,y), radius)
 
     ## Objeto colock para definir os frames por segundo ## #noqa: E233
-    clock = pygame.time.Clock()
+
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    msg = f'Custo do caminho = {custo}'
+    text = font.render(msg,True, (0,0,0), (255,200,200))
+    textRect = text.get_rect()
+    textRect.topleft = [(xpix-1)*scalex-textRect.width,(ypix-1)*scaley]
+    screen.blit(text, textRect)
 
     ## Game loop ##
     while True:

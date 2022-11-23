@@ -86,19 +86,59 @@ class Problema:
 		if ((posxA<0 or posxA>=len(Map[0])) or (posyA<0 or posyA>=len(Map))):
 			return True
 
-		if posxB > posxA: 
-			posxB, posxA = posxA, posxB
-		if posyB > posyA: 
-			posyB, posyA = posyA, posyB
+		# if posxB > posxA: 
+		# 	posxB, posxA = posxA, posxB
+		# if posyB > posyA: 
+		# 	posyB, posyA = posyA, posyB
 
 
-		if ("#" not in Map[posyB][posxB:posxA+1] and "#" not in list(map(lambda l : l[posxA], Map))[posyB:posyA+1]):#Map[posyB : posyA][posxA]):
-			return True
+		# if ("#" not in Map[posyB][posxB:posxA+1] and "#" not in list(map(lambda l : l[posxA], Map))[posyB:posyA+1]):#Map[posyB : posyA][posxA]):
+		# 	return True
 		
-		if ("#" not in list(map(lambda l : l[posxB], Map))[posyB:posyA+1] and "#" not in Map[posyA][posxB:posxA+1]):
-			return True
+		# if ("#" not in list(map(lambda l : l[posxB], Map))[posyB:posyA+1] and "#" not in Map[posyA][posxB:posxA+1]):
+		# 	return True
 
-		return False
+		if  posxB - posxA == 0:
+			if posyB > posyA:
+				posyA, posyB = posyB, posyA
+			if "#" not in list(map(lambda x: x[posxB], Map))[posyB: posyA+1]:
+				return True
+			return False
+
+		declive = (posyB - posyA)/(posxB - posxA)
+
+		b = posyB - declive*posxB
+
+		step = 1
+		if posxB > posxA:
+			step = -1
+
+		for x in range(posxB+step, posxA-step, step):
+			y = declive*x + b
+			if Map[int(y)][x] == "#":
+				return False
+
+		if  posyB - posyA == 0:
+			if posxB > posxA:
+				posxA, posxB = posxB, posxA
+			if "#" not in Map[posyB][posxB: posxA+1]:
+				return True
+			return False
+
+		declive = (posxB - posxA)/(posyB - posyA)
+
+		b = posxB - declive*posyB
+
+		step = 1
+		if posyB > posyA:
+			step = -1
+
+		for y in range(posyB+step, posyA-step, step):
+			x = declive*y + b
+			if Map[int(y)][int(x)] == "#":
+				return False
+
+		return True
 
 	def acelerarXabrandarY(self, state, Map): 
 		pos, vel = state
@@ -247,6 +287,6 @@ if __name__ == "__main__":
 	# problema = Problema(Map, [0,1], [5,1])
 	problema.constroiGrafo()
 	# problema.printGrafo()
-	caminho, custo = problema.BFS()
+	caminho, custo = problema.DFS()
 	# print(list(map(lambda x : x.getPos(), caminho)), custo)
-	m.desenhaMapa(Map, caminho)
+	m.desenhaMapa(Map, caminho, custo)
