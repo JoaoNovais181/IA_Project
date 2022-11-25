@@ -1,9 +1,8 @@
-import pygame
 import sys
-from Node import Node
+import pygame
 
 
-def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2,color: pygame.Color,body_width: int = 2,head_width: int = 4,head_height: int = 2,):
+def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2,color: pygame.Color,bodyWidth: int = 2,headWidth: int = 4,headHeight: int = 2,):
     """Draw an arrow between start and end with the arrow head at the end.
 
     Args:
@@ -12,44 +11,44 @@ def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2
         end (pygame.Vector2): End position
         color (pygame.Color): Color of the arrow
         body_width (int, optional): Defaults to 2.
-        head_width (int, optional): Defaults to 4.
-        head_height (float, optional): Defaults to 2.
+        headWidth (int, optional): Defaults to 4.
+        headHeight (float, optional): Defaults to 2.
     """
     arrow = start - end
     angle = arrow.angle_to(pygame.Vector2(0, -1))
-    body_length = arrow.length() - head_height
+    bodyLength = arrow.length() - headHeight
 
     # Create the triangle head around the origin
-    head_verts = [
-        pygame.Vector2(0, head_height / 2),  # Center
-        pygame.Vector2(head_width / 2, -head_height / 2),  # Bottomright
-        pygame.Vector2(-head_width / 2, -head_height / 2),  # Bottomleft
+    headVerts = [
+        pygame.Vector2(0, headHeight / 2),  # Center
+        pygame.Vector2(headWidth / 2, -headHeight / 2),  # Bottomright
+        pygame.Vector2(-headWidth / 2, -headHeight / 2),  # Bottomleft
     ]
     # Rotate and translate the head into place
-    translation = pygame.Vector2(0, arrow.length() - (head_height / 2)).rotate(-angle)
-    for i in range(len(head_verts)):
-        head_verts[i].rotate_ip(-angle)
-        head_verts[i] += translation
-        head_verts[i] += start
+    translation = pygame.Vector2(0, arrow.length() - (headHeight / 2)).rotate(-angle)
+    for headVert in headVerts:
+        headVert.rotate_ip(-angle)
+        headVert += translation
+        headVert += start
 
-    pygame.draw.polygon(surface, color, head_verts)
+    pygame.draw.polygon(surface, color, headVerts)
 
     # Stop weird shapes when the arrow is shorter than arrow head
-    if arrow.length() >= head_height:
+    if arrow.length() >= headHeight:
         # Calculate the body rect, rotate and translate into place
-        body_verts = [
-            pygame.Vector2(-body_width / 2, body_length / 2),  # Topleft
-            pygame.Vector2(body_width / 2, body_length / 2),  # Topright
-            pygame.Vector2(body_width / 2, -body_length / 2),  # Bottomright
-            pygame.Vector2(-body_width / 2, -body_length / 2),  # Bottomleft
+        bodyVerts = [
+            pygame.Vector2(-bodyWidth / 2, bodyLength / 2),  # Topleft
+            pygame.Vector2(bodyWidth / 2, bodyLength / 2),  # Topright
+            pygame.Vector2(bodyWidth / 2, -bodyLength / 2),  # Bottomright
+            pygame.Vector2(-bodyWidth / 2, -bodyLength / 2),  # Bottomleft
         ]
-        translation = pygame.Vector2(0, body_length / 2).rotate(-angle)
-        for i in range(len(body_verts)):
-            body_verts[i].rotate_ip(-angle)
-            body_verts[i] += translation
-            body_verts[i] += start
+        translation = pygame.Vector2(0, bodyLength / 2).rotate(-angle)
+        for bodyVert in bodyVerts:
+            bodyVert.rotate_ip(-angle)
+            bodyVert += translation
+            bodyVert += start
 
-        pygame.draw.polygon(surface, color, body_verts)
+        pygame.draw.polygon(surface, color, bodyVerts)
 
 
 def desenhaMapa (Map, path=None, custo=0):
@@ -70,30 +69,29 @@ def desenhaMapa (Map, path=None, custo=0):
 
     ## Definicao das cores usadas ##
 
-    green = (0, 255, 0)
-    blue = (0, 0, 128)
+    #  green = (0, 255, 0)
+    #  blue = (0, 0, 128)
     red = (255,0,0)
     rideableColor = 190, 190,210
     notRideableColor = 120, 120, 150
+    startColor = 170, 255, 170
+    endColor = 255,170,170
     gridColor = 150,150,255
 
 
-    ## Texto com as informações acerca do mapa ##
-    # font = pygame.font.Font('freesansbold.ttf', 10)
-    # text = font.render(f'{ypix}x{xpix}, seed={seed}, rideable limit={ridealbleLimit}, octaves={octaves}, multipleNoise={multipleNoise}, min Playable %={minPlayablePercent}',True, blue, green)
-    # textRect = text.get_rect()
-    # textRect.topleft = [0,scaley*ypix]
-    # screen.blit(text, textRect)
-
     for y in range(0, ypix):
         for x in range(0, xpix):
-            # Desenhar o mapa ##
-            # print(xpix, ypix, x, y)
-            # pygame.draw.rect(screen, rideableColor if (Map[y][x] > ridealbleLimit) else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))  # noqa: E501
-            pygame.draw.rect(screen, rideableColor if (Map[y][x]==" ") else notRideableColor, pygame.Rect(x*scalex, y*scaley, scalex, scaley))  # noqa: E501
-            # Desenhar a grelha ##
-            pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)  # noqa: E203, E501 E231
-    
+            color = rideableColor
+            if Map[y][x] == "#":
+                color = notRideableColor
+            elif Map[y][x] == "I":
+                color = startColor
+            elif Map[y][x] == "F":
+                color = endColor
+            pygame.draw.rect(screen, color, pygame.Rect(x*scalex, y*scaley, scalex, scaley))
+            # Desenhar a grelha #
+            pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)
+
     clock = pygame.time.Clock()
 
     if path is not None:
@@ -142,26 +140,68 @@ def desenhaMapa (Map, path=None, custo=0):
     ## Game loop ##
     while True:
 
-            ## Detetar eventos
-            for event in pygame.event.get():
-                ## Se encontrat um quit sai da janela
-                if event.type == pygame.QUIT:
-                    sys.exit()
+        ## Detetar eventos
+        for event in pygame.event.get():
+            ## Se encontrat um quit sai da janela
+            if event.type == pygame.QUIT:
+                sys.exit()
 
-            ## Definir 30 fps
-            clock.tick(30)
+        ## Definir 30 fps
+        clock.tick(30)
 
-            ## Desenhar imagem
-            pygame.display.flip()
+        ## Desenhar imagem
+        pygame.display.flip()
 
-def carregaMapa (filename):
-    with open(filename, "r") as mapFile:
+def carregaMapa (filename : str) -> list[list[str]]:
+    with open(filename, "r", encoding="UTF-8") as mapFile:
         lines = mapFile.read().split("\n")
 
-        Map = [[c if c not in "PFS" else " " for c in line] for line in lines]
+        Map = [[c for c in line.strip()] for line in lines]
 
-        return Map 
+        return Map
+
+def distanceMap (Map : list[list[str]]) -> list[list[int]] | None:
+
+    maxX, maxY = len(Map[0]), len(Map)
+    firstPosX, firstPosY = -1, -1
+    for i, li in enumerate(Map):
+        for j, val in enumerate(li):
+            if val == "F":
+                firstPosX = j
+                firstPosY = i
+                break
+    if firstPosX == -1 or firstPosY == -1:
+        return None
+
+    distMap : list[list[int]] = [[-1 if c == "#" else 999999999 for c in line] for line in Map]
+    queue = []
+    queue.append((firstPosX,firstPosY,0))
+
+    while len(queue) > 0:
+        x,y,dist = queue.pop(0)
+        if Map[y][x] == "#":
+            continue
+
+        distMap[y][x] = dist
+
+        if y > 0 and Map[y-1][x] != "F" and distMap[y-1][x] > dist+1:
+            queue.append((x, y-1, dist+1))
+        if x > 0 and Map[y][x-1] != "F" and distMap[y][x-1] > dist+1:
+            queue.append((x-1, y, dist+1))
+        if x < maxX-1 and Map[y][x+1] != "F" and distMap[y][x+1] > dist+1:
+            queue.append((x+1, y, dist+1))
+        if y < maxY-1 and Map[y+1][x] != "F" and distMap[y+1][x] > dist+1:
+            queue.append((x,y+1, dist+1))
+
+
+    return distMap
+
+def main():
+    Map = carregaMapa("./mapaFase1.txt")
+    for line in distanceMap(Map):
+        for val in line:
+            print(f'{val:4d}', end='')
+        print()
 
 if __name__ == "__main__":
-    Map = carregaMapa("./mapaFase1.txt")
-    desenhaMapa(Map)
+    main()
