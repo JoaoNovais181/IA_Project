@@ -1,8 +1,10 @@
-import pygame, sys
+import pygame, sys, os
 from Problema import Problema
 import Mapa
+from Node import Node
 
-mapas = ["mapaFase1.txt", "mapaTeste.txt"]
+diretoriaMapas = "../mapas"
+mapas = os.listdir(diretoriaMapas)
 
 def printOpcoes(options, screen, selected=0):
 
@@ -26,8 +28,8 @@ def printOpcoes(options, screen, selected=0):
 def comecaJogo(screen, ficheiroMapa):
     bg = pygame.image.load("../images/VectorRace.png")
 
-    mapa = Mapa.carregaMapa(ficheiroMapa)
-    problema = Problema(mapa)
+    mapa = Mapa.carregaMapa(diretoriaMapas+"/"+ficheiroMapa)
+    problema = Problema(diretoriaMapas+"/"+ficheiroMapa)
     problema.constroiGrafo()
 
     opcoes = ["DFS - Depth First Search", "BFS - Breadth First Search", "A*", "Todos", "Ver Mapa", "Voltar"]
@@ -42,33 +44,37 @@ def comecaJogo(screen, ficheiroMapa):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DOWN:
-                    selected = (selected+1)%(nOpcoes+1)
+                    selected = (selected+1)%nOpcoes
                 if event.key == pygame.K_UP:
-                    selected = (selected-1 + (nOpcoes+1))%(nOpcoes+1)
-                if event.key == pygame.K_RETURN:    
+                    selected = (selected-1 + nOpcoes)%nOpcoes
+                if event.key == pygame.K_RETURN:
                     if opcoes[selected] == "Voltar":
                         return 1
-                    elif selected == 0:
+                    if selected == 0:
                         path, custo = problema.DFS()
-                        Mapa.desenhaMapa(mapa, path, custo)
-                        return 0
+                        Mapa.desenhaMapa(mapa, [path], [custo])
                     elif selected == 1:
                         path, custo = problema.BFS()
-                        Mapa.desenhaMapa(mapa, path, custo)
-                        return 0
+                        Mapa.desenhaMapa(mapa, [path], [custo])
                     elif selected == 2:
                         path, custo = problema.AStar()
-                        Mapa.desenhaMapa(mapa, path, custo)
-                        return 0
+                        Mapa.desenhaMapa(mapa, [path], [custo])
                     elif selected == 3:
-                        print("Ainda nao implementado")
-                        path, custo = problema.DFS()
-                        Mapa.desenhaMapa(mapa, path, custo)
-                        return 0
+                        path1, custo1 = problema.DFS()
+                        path2, custo2 = problema.BFS()
+                        path3, custo3 = problema.AStar()
+                        paths : list[list[Node]] = []
+                        paths.append(path1)
+                        paths.append(path2)
+                        paths.append(path3)
+                        costs  : list[list[int]]= []
+                        costs.append(custo1)
+                        costs.append(custo2)
+                        costs.append(custo3)
+                        Mapa.desenhaMapa(mapa, paths, costs)
                     elif selected == 4:
                         Mapa.desenhaMapa(mapa)
-                        return 0
-
+                    return 0
                 if event.key == pygame.K_ESCAPE:
                     return
        
@@ -142,6 +148,7 @@ def main():
     opcoes = {"Selecionar Mapa":selecionarMapa, "Sair":sys.exit}
 
     while True:
+        #  screen = pygame.display.set
         for event in pygame.event.get():
                 ## Se encontrat um quit sai da janela
             if event.type == pygame.QUIT:

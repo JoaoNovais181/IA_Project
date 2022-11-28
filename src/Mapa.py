@@ -1,6 +1,6 @@
 import sys
 import pygame
-
+from Node import Node
 
 def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2,color: pygame.Color,bodyWidth: int = 2,headWidth: int = 4,headHeight: int = 2,):
     """Draw an arrow between start and end with the arrow head at the end.
@@ -51,7 +51,29 @@ def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2
         pygame.draw.polygon(surface, color, bodyVerts)
 
 
-def desenhaMapa (Map, path=None, custo=0):
+
+def desenhaMapa (Map, paths : list[list[Node]] | None = None, custo : list[int] | None = 0):
+    def drawNodePath (node1 : Node, node2 : Node, color):
+        posi = node1.getPos()
+        posf = node2.getPos()
+        xi = posi[0]*scalex + scalex*0.5
+        yi = posi[1]*scaley + scaley*0.5
+        xf = posf[0]*scalex + scalex*0.5
+        yf = posf[1]*scaley + scaley*0.5
+        inicio = pygame.Vector2((xi,yi))
+        fim = pygame.Vector2((xf,yf))
+        # pygame.draw.line(screen, (0,0,0), (xi,yi), (xf,yf), width = int(scalex*0.1))
+        draw_arrow(screen, inicio, fim, color, 3, 10, 10)
+        pos = node1.getPos()
+        x = pos[0]*scalex + scalex*0.5
+        y = pos[1]*scaley + scaley*0.5
+        pygame.draw.circle(screen, color, (x,y), radius)
+        pos = node2.getPos()
+        x = pos[0]*scalex + scalex*0.5
+        y = pos[1]*scaley + scaley*0.5
+        pygame.draw.circle(screen, color, (x,y), radius)
+        pygame.display.flip()
+
     # print(Map)
     xpix = len(Map[0])
     ypix = len(Map)
@@ -71,7 +93,7 @@ def desenhaMapa (Map, path=None, custo=0):
 
     #  green = (0, 255, 0)
     #  blue = (0, 0, 128)
-    red = (255,0,0)
+    #  red = (255,0,0)
     rideableColor = 190, 190,210
     notRideableColor = 120, 120, 150
     startColor = 170, 255, 170
@@ -94,57 +116,39 @@ def desenhaMapa (Map, path=None, custo=0):
 
     clock = pygame.time.Clock()
 
-    if path is not None:
+    if paths is not None:
         radius = scalex * 0.25
-        for i in range(len(path)-1):
-            node1 = path[i]
-            node2 = path[i+1]
-            posi = node1.getPos()
-            posf = node2.getPos()
-            xi = posi[0]*scalex + scalex*0.5
-            yi = posi[1]*scaley + scaley*0.5
-            xf = posf[0]*scalex + scalex*0.5
-            yf = posf[1]*scaley + scaley*0.5
-            inicio = pygame.Vector2((xi,yi))
-            fim = pygame.Vector2((xf,yf))
-            # pygame.draw.line(screen, (0,0,0), (xi,yi), (xf,yf), width = int(scalex*0.1))
-            draw_arrow(screen, inicio, fim, (0,0,0), 3, 10, 10)
-            pos = node1.getPos()
-            x = pos[0]*scalex + scalex*0.5
-            y = pos[1]*scaley + scaley*0.5
-            pygame.draw.circle(screen, red, (x,y), radius)
-            pos = node2.getPos()
-            x = pos[0]*scalex + scalex*0.5
-            y = pos[1]*scaley + scaley*0.5
-            pygame.draw.circle(screen, red, (x,y), radius)
-            pygame.display.flip()
+        colors = [(255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255)]
+        biggest = max(list(map(len, paths)))
+        for i in range(biggest - 1):
+            drawAbove = []
+            for j, path in enumerate(paths):
+                if i < len(path) - 1:
+                    node1 = path[i]
+                    node2 = path[i+1]
+                    drawNodePath(node1,node2, colors[j])
+                else:
+                    drawAbove.append((path, colors[j]))
 
+            if len(drawAbove) > 0:
+                for path, color in drawAbove:
+                    for j in range(len(path)-1):
+                        drawNodePath(path[j], path[j+1], color)
+
+                drawAbove.clear()
             clock.tick(10)
-
-
-        # for node in path:
-        #     pos = node.getPos()
-        #     x = pos[0]*scalex + scalex*0.5
-        #     y = pos[1]*scaley + scaley*0.5
-        #     pygame.draw.circle(screen, red, (x,y), radius)
-
-    ## Objeto colock para definir os frames por segundo ## #noqa: E233
-
-    font = pygame.font.Font('freesansbold.ttf', 20)
-    msg = f'Custo do caminho = {custo}'
-    text = font.render(msg,True, (0,0,0), (255,200,200))
-    textRect = text.get_rect()
-    textRect.topleft = [(xpix-1)*scalex-textRect.width,(ypix-1)*scaley]
-    screen.blit(text, textRect)
 
     ## Game loop ##
     while True:
 
         ## Detetar eventos
         for event in pygame.event.get():
-            ## Se encontrat um quit sai da janela
+                ## Se encontrat um quit sai da janela
             if event.type == pygame.QUIT:
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
 
         ## Definir 30 fps
         clock.tick(30)
@@ -155,6 +159,7 @@ def desenhaMapa (Map, path=None, custo=0):
 def carregaMapa (filename : str) -> list[list[str]]:
     with open(filename, "r", encoding="UTF-8") as mapFile:
         lines = mapFile.read().split("\n")
+        lines = list(filter(lambda x : len(x)>0, lines))
 
         Map = [[c for c in line.strip()] for line in lines]
 
@@ -162,20 +167,21 @@ def carregaMapa (filename : str) -> list[list[str]]:
 
 def distanceMap (Map : list[list[str]]) -> list[list[int]] | None:
 
+    #  print(Map)
+
     maxX, maxY = len(Map[0]), len(Map)
-    firstPosX, firstPosY = -1, -1
+    #  print(maxX, maxY)
+    firstPos = []
     for i, li in enumerate(Map):
         for j, val in enumerate(li):
             if val == "F":
-                firstPosX = j
-                firstPosY = i
-                break
-    if firstPosX == -1 or firstPosY == -1:
+                firstPos.append((j,i,0))
+    if not len(firstPos) > 0:
         return None
 
     distMap : list[list[int]] = [[-1 if c == "#" else 999999999 for c in line] for line in Map]
     queue = []
-    queue.append((firstPosX,firstPosY,0))
+    queue.extend(firstPos)
 
     while len(queue) > 0:
         x,y,dist = queue.pop(0)
@@ -184,16 +190,25 @@ def distanceMap (Map : list[list[str]]) -> list[list[int]] | None:
 
         distMap[y][x] = dist
 
-        if y > 0 and Map[y-1][x] != "F" and distMap[y-1][x] > dist+1:
+        #  print(x,y)
+        if y > 0 and Map[y-1][x] == "F" and distMap[y-1][x] != 0 and (x,y-1,0) not in queue:
+            queue.append((x, y-1, 0))
+        elif y > 0 and distMap[y-1][x] > dist+1 and (x,y-1,dist+1) not in queue:
             queue.append((x, y-1, dist+1))
-        if x > 0 and Map[y][x-1] != "F" and distMap[y][x-1] > dist+1:
+        if x > 0 and Map[y][x-1] == "F" and distMap[y][x-1] != 0 and (x-1, y, 0) not in queue:
+            queue.append((x-1, y, 0))
+        elif y < maxY-1 and distMap[y][x-1] > dist+1 and (x-1,y,dist+1) not in queue:
             queue.append((x-1, y, dist+1))
-        if x < maxX-1 and Map[y][x+1] != "F" and distMap[y][x+1] > dist+1:
+        if x < maxX-1 and Map[y][x+1] == "F" and distMap[y][x+1] != 0 and (x+1, y, 0) not in queue:
+            queue.append((x+1, y, 0))
+        elif x < maxX-1 and distMap[y][x+1] > dist+1 and (x+1, y, dist+1) not in queue:
             queue.append((x+1, y, dist+1))
-        if y < maxY-1 and Map[y+1][x] != "F" and distMap[y+1][x] > dist+1:
+        if y < maxY-1 and Map[y+1][x] == "F" and distMap[y+1][x] != 0 and (x, y+1, 0) not in queue:
+            queue.append((x,y+1, 0))
+        elif y < maxY-1 and distMap[y+1][x] > dist+1 and (x, y+1, dist+1) not in queue:
             queue.append((x,y+1, dist+1))
 
-
+    print("Acabou")
     return distMap
 
 def main():

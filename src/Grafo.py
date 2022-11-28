@@ -97,7 +97,7 @@ class Grafo:
         while not fila.empty() and path_found == False:
             nodo_atual = self.getNodeByID(fila.get())
             # print(nodo_atual, endPos)
-            if nodo_atual.getPos() == endPos:
+            if nodo_atual.getPos() in endPos:
                 path_found = True
                 end = nodo_atual
             else:
@@ -141,7 +141,7 @@ class Grafo:
         while len(fila)>0 and end is None:
             nodo_atual = self.getNodeByID(fila.pop())
             # print(nodo_atual, endPos)
-            if nodo_atual.getPos() == endPos:
+            if nodo_atual.getPos() in endPos:
                 end = nodo_atual
             else:
                 paraMandar = []
@@ -186,7 +186,7 @@ class Grafo:
             current = open_list[0]
             currentNode : Node = self.getNodeByID(current)
 
-            if currentNode.getPos() == endPos:
+            if currentNode.getPos() in endPos:
                 path = []
                 while current is not None:
                     path.append(self.getNodeByID(current))
