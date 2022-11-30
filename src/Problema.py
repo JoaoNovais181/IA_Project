@@ -57,7 +57,7 @@ class Problema:
             expandedState = self.expandState(currState)
             expanded.add(f"{currPos},{currVel}")
 
-            #  print(len(expand), len(expanded))
+            print(len(expand), len(expanded))
 
             if (currPos[0] < 0 or currPos[0] >= maxX) or (currPos[1] < 0 or currPos[1] >= maxY):
                 self.grafo.addHeuristic((currPos,currVel), self.mapaDistancias[prevPos[1]][prevPos[0]])
@@ -265,6 +265,9 @@ class Problema:
     def AStar(self):
         return self.grafo.AStar(list(map(lambda p : self.grafo.getNodeBySearchNode(Node(p,[0,0])), self.inicio)), self.fim)
 
+    def Greedy(self):
+        return self.grafo.Greedy(list(map(lambda p : self.grafo.getNodeBySearchNode(Node(p,[0,0])), self.inicio)), self.fim)
+    
     def printGrafo(self):
         print(self.grafo.m_nodes)
 

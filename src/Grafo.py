@@ -14,8 +14,8 @@ class Grafo:
 
     def __str__(self):
         out = ""
-        for key in self.m_graph.keys():
-            out = out + f"node {str(key)} : {str(self.m_graph[key])}\n"
+        for key, val in self.m_graph:
+            out = out + f"node {str(key)} : {str(val)}\n"
 
         return out
 
@@ -76,7 +76,8 @@ class Grafo:
         pos,vel = state
         node = Node(pos,vel)
         n = self.getNodeBySearchNode(node)
-        if n is not None: self.m_heuristic[n.getID()] = heuristic
+        if n is not None:
+            self.m_heuristic[n.getID()] = heuristic
 
     def BFS(self, start:list[Node], endPos):
         # definir nodos visitados para evitar ciclos
@@ -93,22 +94,20 @@ class Grafo:
 
         end = None
 
-        path_found = False
-        while not fila.empty() and path_found == False:
+        while not fila.empty() and end is None:
             nodo_atual = self.getNodeByID(fila.get())
             # print(nodo_atual, endPos)
             if nodo_atual.getPos() in endPos:
-                path_found = True
                 end = nodo_atual
             else:
-                for (adjacente, peso) in self.m_graph[nodo_atual.getID()]:
+                for (adjacente, _) in self.m_graph[nodo_atual.getID()]:
                     if adjacente not in visited:
                         fila.put(adjacente)
                         parent[adjacente] = nodo_atual.getID()
                         visited.add(adjacente)
         # Reconstruir o caminho
         path = []
-        if path_found:
+        if end is not None:
             path.append(end)
             while parent[end.getID()] is not None:
                 parentNode = self.getNodeByID(parent[end.getID()])
@@ -136,7 +135,6 @@ class Grafo:
 
         end = None
 
-        path_found = False
         while len(fila)>0 and end is None:
             nodo_atual = self.getNodeByID(fila.pop())
             # print(nodo_atual, endPos)
@@ -144,7 +142,7 @@ class Grafo:
                 end = nodo_atual
             else:
                 paraMandar = []
-                for (adjacente, peso) in self.m_graph[nodo_atual.getID()]:
+                for (adjacente, _) in self.m_graph[nodo_atual.getID()]:
                     if adjacente not in visited:
                         paraMandar.append(adjacente)
                         parent[adjacente] = nodo_atual.getID()
@@ -211,5 +209,55 @@ class Grafo:
                     if adj not in open_list:
                         open_list.append(adj)
                         open_list.sort(key=(lambda el : fScore[el]))
+
+        return None
+
+    def Greedy(self, start:list[Node], endPos):
+        parent = {}
+
+        #  for node in self.m_nodes:
+            #  gScore[node.getID()] = fScore[node.getID()] = float('inf')
+
+        open_list = []
+        closed_list = []
+        open_list.extend(list(map(lambda n : (n.getID(),0) , start)))
+        for n in start:
+            #  gScore[n.getID()] = 0
+            #  fScore[n.getID()] = self.m_heuristic[n.getID()]
+            parent[(n.getID(),0)] = (None, 0)
+
+        while len(open_list) > 0:
+            current, normDiff = None, None
+
+            for nID, nD in open_list:
+                if current == None or self.m_heuristic[nID] + nD < self.m_heuristic[current] + normDiff:
+                    current = nID
+                    normDiff = nD
+            
+            if current == None:
+                return None
+            
+            currentNode : Node = self.getNodeByID(current)
+
+            if currentNode.getPos() in endPos:
+                path = []
+                while current is not None:
+                    path.append(self.getNodeByID(current))
+                    current, normDiff = parent[(current,normDiff)]
+
+                path.reverse()
+
+                return path, self.pathCost(path)
+
+            for adj, _ in self.m_graph[current]:
+                parentVel = currentNode.getVel()
+                currVel   = self.getNodeByID(adj).getVel()
+                nD = 0.5*((parentVel[0]*parentVel[0] + parentVel[1]*parentVel[1]) - (currVel[0]*currVel[0] + currVel[1]*currVel[1]))
+                if (adj, nD) not in open_list and (adj,nD) not in closed_list:
+                    parent[(adj,nD)] = (current, normDiff)
+                    open_list.append((adj,nD))
+            
+            open_list.remove((current,normDiff))
+            closed_list.append((current,normDiff))
 
         return None

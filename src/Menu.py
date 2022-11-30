@@ -63,7 +63,7 @@ def comecaJogo(screen, ficheiroMapa):
     problema = Problema(diretoriaMapas+"/"+ficheiroMapa)
     problema.constroiGrafo()
 
-    opcoes = ["DFS - Depth First Search", "BFS - Breadth First Search", "A*", "Todos", "Ver Mapa", "Voltar"]
+    opcoes = ["DFS - Depth First Search", "BFS - Breadth First Search", "A*", "Greedy", "Todos", "Ver Mapa", "Voltar"]
     nOpcoes = len(opcoes)
 
     selected = 0
@@ -95,6 +95,9 @@ def comecaJogo(screen, ficheiroMapa):
                         path, custo = problema.AStar()
                         Mapa.desenhaMapa(mapa, [path], [custo])
                     elif selected == 3:
+                        path, custo = problema.Greedy()
+                        Mapa.desenhaMapa(mapa, [path], [custo])
+                    elif selected == 4:
                         path1, custo1 = problema.DFS()
                         path2, custo2 = problema.BFS()
                         path3, custo3 = problema.AStar()
@@ -107,7 +110,7 @@ def comecaJogo(screen, ficheiroMapa):
                         costs.append(custo2)
                         costs.append(custo3)
                         Mapa.desenhaMapa(mapa, paths, costs)
-                    elif selected == 4:
+                    elif selected == 5:
                         Mapa.desenhaMapa(mapa)
                 if event.key == pygame.K_ESCAPE:
                     return
