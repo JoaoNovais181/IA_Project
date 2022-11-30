@@ -45,7 +45,7 @@ class Grafo:
 
         return None
 
-    def getNodeByID(self, searchID):
+    def getNodeByID(self, searchID: int) -> Node:
 
         for node in self.m_nodes:
             if node.getID() == searchID:
@@ -78,18 +78,18 @@ class Grafo:
         n = self.getNodeBySearchNode(node)
         if n is not None: self.m_heuristic[n.getID()] = heuristic
 
-    def BFS(self, start:Node, endPos):
+    def BFS(self, start:list[Node], endPos):
         # definir nodos visitados para evitar ciclos
         visited = set()
         fila = Queue()
+        parent = dict()
 
         # adicionar o nodo inicial à fila e aos visitados
-        fila.put(start.getID())
-        visited.add(start.getID())
+        for node in start:
+            fila.put(node.getID())
+            visited.add(node.getID())
+            parent[node.getID()] = None
 
-        # garantir que o start node nao tem pais...
-        parent = dict()
-        parent[start.getID()] = None
 
         end = None
 
@@ -122,18 +122,17 @@ class Grafo:
 
         return None
 
-    def DFS(self, start:Node, endPos):
+    def DFS(self, start:list[Node], endPos):
         # definir nodos visitados para evitar ciclos
         visited = set()
         fila = []
+        parent = dict()
 
         # adicionar o nodo inicial à fila e aos visitados
-        fila.append(start.getID())
-        visited.add(start.getID())
-
-        # garantir que o start node nao tem pais...
-        parent = dict()
-        parent[start.getID()] = None
+        for n in start:
+            fila.append(n.getID())
+            visited.add(n.getID())
+            parent[n.getID()] = None
 
         end = None
 
@@ -169,7 +168,7 @@ class Grafo:
 
         return None
 
-    def AStar(self, start:Node, endPos):
+    def AStar(self, start:list[Node], endPos):
         gScore = {}
         fScore = {}
         parent = {}
@@ -177,10 +176,12 @@ class Grafo:
         for node in self.m_nodes:
             gScore[node.getID()] = fScore[node.getID()] = float('inf')
 
-        open_list = [start.getID()]
-        gScore[start.getID()] = 0
-        fScore[start.getID()] = self.m_heuristic[start.getID()]
-        parent[start.getID()] = None
+        open_list = []
+        open_list.extend(list(map(lambda n : n.getID(), start)))
+        for n in start:
+            gScore[n.getID()] = 0
+            fScore[n.getID()] = self.m_heuristic[n.getID()]
+            parent[n.getID()] = None
 
         while len(open_list) > 0:
             current = open_list[0]
@@ -200,9 +201,12 @@ class Grafo:
             for adj, custo in self.m_graph[current]:
                 tentative_gScore = gScore[current] + custo
                 if tentative_gScore < gScore[adj]:
+                    parentVel = currentNode.getVel()
+                    currVel   = self.getNodeByID(adj).getVel()
+                    normDiff = 0.5*((parentVel[0]*parentVel[0] + parentVel[1]*parentVel[1]) - (currVel[0]*currVel[0] + currVel[1]*currVel[1]))
                     parent[adj] = current
                     gScore[adj] = tentative_gScore
-                    fScore[adj] = tentative_gScore + self.m_heuristic[adj]
+                    fScore[adj] = (tentative_gScore + self.m_heuristic[adj]) / (currVel[0]*currVel[0] + currVel[1]*currVel[1]+1) + normDiff
 
                     if adj not in open_list:
                         open_list.append(adj)

@@ -3,8 +3,38 @@ from Problema import Problema
 import Mapa
 from Node import Node
 
+
+class Button:
+
+    position = {'x':0, 'y':0}
+    size = {'width':0, 'height':0}
+
+    def __init__ (self, x, y, width, height, text):
+        self.position['x']  = x
+        self.position['y']  = y
+        self.size['width']  = width
+        self.size['height'] = height
+        self.surface = pygame.display.set_mode((400, 300))
+        self.text = text
+        self.font = pygame.font.Font('freesansbold.ttf', 20)
+
+    def draw (self, mouse_pos):
+        text = self.font.render(self.text, True, (0,0,0))
+        textRect = text.get_rect()
+        textRect.topleft = [int(self.size['width']/2-textRect.width/2),int(self.position['y']+5)]
+        color = (255, 0, 0)
+        if mouse_pos['x'] >= self.position['x'] and mouse_pos['x'] <= self.position['x'] + self.size['width'] and mouse_pos['y'] >= self.position['y'] and mouse_pos['y'] <= self.position['y'] + self.size['height']:
+            color = (255, 100, 100)
+        pygame.draw.rect(self.surface, (0,0,0), pygame.Rect(self.position['x'], self.position['y'], self.size['width'], self.size['height']))
+        pygame.draw.rect(self.surface, color, pygame.Rect(self.position['x']+int(self.size['width']/2)-int(0.9*self.size['width']/2), self.position['y']+int(self.size['height']/2)-int(0.9*self.size['height']/2), int(self.size['width']*0.9), int(self.size['height']*0.9)))
+
+
+
 diretoriaMapas = "../mapas"
 mapas = os.listdir(diretoriaMapas)
+clock = pygame.time.Clock()
+
+
 
 def printOpcoes(options, screen, selected=0):
 
@@ -27,6 +57,7 @@ def printOpcoes(options, screen, selected=0):
 
 def comecaJogo(screen, ficheiroMapa):
     bg = pygame.image.load("../images/VectorRace.png")
+    size = bg.get_size()
 
     mapa = Mapa.carregaMapa(diretoriaMapas+"/"+ficheiroMapa)
     problema = Problema(diretoriaMapas+"/"+ficheiroMapa)
@@ -38,6 +69,10 @@ def comecaJogo(screen, ficheiroMapa):
     selected = 0
 
     while True:
+        if screen.get_size() != size:
+            screen = pygame.display.set_mode(size)
+            pygame.transform.scale(screen, size)
+            bg = pygame.image.load("../images/VectorRace.png")
         for event in pygame.event.get():
                 ## Se encontrat um quit sai da janela
             if event.type == pygame.QUIT:
@@ -74,12 +109,12 @@ def comecaJogo(screen, ficheiroMapa):
                         Mapa.desenhaMapa(mapa, paths, costs)
                     elif selected == 4:
                         Mapa.desenhaMapa(mapa)
-                    return 0
                 if event.key == pygame.K_ESCAPE:
                     return
        
         printOpcoes(opcoes, screen, selected)
         screen.blit(bg, (0, 0))
+        clock.tick(30)
 
     return 1
 
@@ -90,7 +125,12 @@ def selecionarMapa(screen):
     numPags = len(mapas) // mapaPorPag
     pagAtual = 0
     bg = pygame.image.load("../images/VectorRace.png")
+    size = bg.get_size()
     while True:
+        if screen.get_size() != size:
+            screen = pygame.display.set_mode(size)
+            pygame.transform.scale(screen, size)
+            bg = pygame.image.load("../images/VectorRace.png")
         opcoes = mapas[pagAtual*mapaPorPag:pagAtual*mapaPorPag + mapaPorPag]
 
         while len(opcoes) < mapaPorPag:
@@ -122,6 +162,13 @@ def selecionarMapa(screen):
                         res = comecaJogo(screen, opcoes[selected])               
                         if res == 0:
                             return
+                
+                if event.key == pygame.K_RIGHT:
+                    pagAtual = (pagAtual+1)%numPags
+
+                if event.key == pygame.K_LEFT:
+                    pagAtual = (pagAtual+numPags-1)%numPags
+            
 
                 if event.key == pygame.K_ESCAPE:
                     return
@@ -130,6 +177,7 @@ def selecionarMapa(screen):
 
         screen.blit(bg, (0, 0)) 
         printOpcoes(opcoes, screen, selected)
+        clock.tick(30)
 
 def main():
     pygame.init()
@@ -142,12 +190,15 @@ def main():
 
 
 
-    clock = pygame.time.Clock()
 
     selected = 0
     opcoes = {"Selecionar Mapa":selecionarMapa, "Sair":sys.exit}
 
     while True:
+        if screen.get_size() != size:
+            screen = pygame.display.set_mode(size)
+            pygame.transform.scale(screen, size)
+            bg = pygame.image.load("../images/VectorRace.png")
         #  screen = pygame.display.set
         for event in pygame.event.get():
                 ## Se encontrat um quit sai da janela

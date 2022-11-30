@@ -2,7 +2,7 @@ from perlin_noise import PerlinNoise
 import pygame, sys, os
 import random
 
-ridealbleLimit = -0.1
+ridealbleLimit = -0.15
 minPlayablePercent = 0.6
 
 def cleanupMap (m):
