@@ -52,7 +52,7 @@ def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2
 
 
 
-def desenhaMapa (Map, paths : list[list[Node]] | None = None, custo : list[int] | None = 0):
+def desenhaMapa (Map, resultList : list[list[tuple[str, Node,int]]] | None = None):
     def drawNodePath (node1 : Node, node2 : Node, color):
         posi = node1.getPos()
         posf = node2.getPos()
@@ -62,7 +62,6 @@ def desenhaMapa (Map, paths : list[list[Node]] | None = None, custo : list[int] 
         yf = posf[1]*scaley + scaley*0.5
         inicio = pygame.Vector2((xi,yi))
         fim = pygame.Vector2((xf,yf))
-        # pygame.draw.line(screen, (0,0,0), (xi,yi), (xf,yf), width = int(scalex*0.1))
         draw_arrow(screen, inicio, fim, color, 3, 10, 10)
         pos = node1.getPos()
         x = pos[0]*scalex + scalex*0.5
@@ -74,26 +73,23 @@ def desenhaMapa (Map, paths : list[list[Node]] | None = None, custo : list[int] 
         pygame.draw.circle(screen, color, (x,y), radius)
         pygame.display.flip()
 
-    # print(Map)
+    paths = list(map(lambda p: p[1], resultList))
+
     xpix = len(Map[0])
     ypix = len(Map)
     scalex, scaley = 30,30
-    ## Tamanho para o texto ##
-    # textSize = 10
 
     ## Iniciar o pygame ##
     pygame.init()
 
     ## Criar a janela ##
-    screen = pygame.display.set_mode((xpix*scalex,(ypix*scaley)))
+    screen = pygame.display.set_mode((xpix*scalex+200,(ypix*scaley)))
+    screen.fill((50,50,50))
     ## Definir o nome da janela ##
     pygame.display.set_caption('Vector Race')
 
     ## Definicao das cores usadas ##
 
-    #  green = (0, 255, 0)
-    #  blue = (0, 0, 128)
-    #  red = (255,0,0)
     rideableColor = 190, 190,210
     notRideableColor = 120, 120, 150
     startColor = 170, 255, 170
@@ -138,6 +134,23 @@ def desenhaMapa (Map, paths : list[list[Node]] | None = None, custo : list[int] 
                 drawAbove.clear()
             clock.tick(10)
 
+    height = 40
+    fontSize = 20
+    if len(resultList) > 1 and height*len(resultList) > ypix*scaley:
+        height = ypix-scaley//len(resultList)
+        fontSize = height/2
+        
+
+    for i,(name, _, cost) in enumerate(resultList):
+        font = pygame.font.Font('freesansbold.ttf', fontSize)
+        text = font.render(f'{name}, custo={cost}', True, (0,0,0), colors[i])
+        textRect = text.get_rect()
+        bgRect = pygame.Rect((xpix*scalex,i*height), (200,height))
+        textRect.center = bgRect.center
+        pygame.draw.rect(screen, colors[i], bgRect)
+        screen.blit(text, textRect)
+
+
     ## Game loop ##
     while True:
 
@@ -167,10 +180,8 @@ def carregaMapa (filename : str) -> list[list[str]]:
 
 def distanceMap (Map : list[list[str]]) -> list[list[int]] | None:
 
-    #  print(Map)
 
     maxX, maxY = len(Map[0]), len(Map)
-    #  print(maxX, maxY)
     firstPos = []
     for i, li in enumerate(Map):
         for j, val in enumerate(li):
@@ -190,7 +201,6 @@ def distanceMap (Map : list[list[str]]) -> list[list[int]] | None:
 
         distMap[y][x] = dist
 
-        #  print(x,y)
         if y > 0 and Map[y-1][x] == "F" and distMap[y-1][x] != 0 and (x,y-1,0) not in queue:
             queue.append((x, y-1, 0))
         elif y > 0 and distMap[y-1][x] > dist+1 and (x,y-1,dist+1) not in queue:
@@ -208,15 +218,4 @@ def distanceMap (Map : list[list[str]]) -> list[list[int]] | None:
         elif y < maxY-1 and distMap[y+1][x] > dist+1 and (x, y+1, dist+1) not in queue:
             queue.append((x,y+1, dist+1))
 
-    print("Acabou")
     return distMap
-
-def main():
-    Map = carregaMapa("./mapaFase1.txt")
-    for line in distanceMap(Map):
-        for val in line:
-            print(f'{val:4d}', end='')
-        print()
-
-if __name__ == "__main__":
-    main()

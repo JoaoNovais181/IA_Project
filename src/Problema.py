@@ -31,7 +31,6 @@ class Problema:
     def constroiGrafo(self):
         
         ficheiroGrafo = self.ficheiroMapa.replace("../mapas/", "")
-        #  print(ficheiroGrafo, os.listdir(graphDir))
         if ficheiroGrafo in os.listdir(graphDir):
             file = graphDir + "/" + ficheiroGrafo
             if os.path.getsize(file) > 0:
@@ -39,7 +38,6 @@ class Problema:
                     obj = pickle.load(graphFile)
                     if isinstance(obj, Grafo):
                         self.grafo = obj
-                        print(len(self.grafo.m_nodes))
                         return
         
         initialStates = list(map(lambda x : (x,x, [0,0]), self.inicio))
@@ -56,8 +54,6 @@ class Problema:
             (currPos, prevPos, currVel) = currState
             expandedState = self.expandState(currState)
             expanded.add(f"{currPos},{currVel}")
-
-            print(len(expand), len(expanded))
 
             if (currPos[0] < 0 or currPos[0] >= maxX) or (currPos[1] < 0 or currPos[1] >= maxY):
                 self.grafo.addHeuristic((currPos,currVel), self.mapaDistancias[prevPos[1]][prevPos[0]])
@@ -81,7 +77,6 @@ class Problema:
         if pos in self.fim:
             return []
 
-        # print(pos, vel)
         if (pos[0]<0 or pos[0]>=len(Map[0])) or (pos[1]<0 or pos[1]>=len(Map)) or self.mapa[pos[1]][pos[0]] == "#":
             x = self.jogadorFora(state)
             return [x]
@@ -270,18 +265,3 @@ class Problema:
     
     def printGrafo(self):
         print(self.grafo.m_nodes)
-
-def main():
-    # Map = carregaMapa("mapaTeste.txt")
-    #  Map = m.carregaMapa("mapaFase1.txt")
-    problema = Problema("mapaFase1.txt")
-    # problema = Problema(Map, [0,1], [5,1])
-    print("Antes de construir")
-    problema.constroiGrafo()
-    print("Depois de construir")
-    caminho, custo = problema.BFS()
-    # print(list(map(lambda x : x.getPos(), caminho)), custo)
-    #  m.desenhaMapa(Map, caminho, custo)
-
-if __name__ == "__main__":
-    main()

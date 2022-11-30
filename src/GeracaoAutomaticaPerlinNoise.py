@@ -88,12 +88,10 @@ def generateMap (seed=1, xpix=100, ypix=100, octaves = 2, multipleNoise = False)
                     if val > ridealbleLimit: playable += 1
 
         seed += 1
-        print(playable/total)
 
     ## Limpeza do mapa ##
     cleanupMap(Map)
 
-    print(seed - 1)
     return Map,seed
 
 

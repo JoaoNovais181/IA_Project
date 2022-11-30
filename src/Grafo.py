@@ -96,7 +96,6 @@ class Grafo:
 
         while not fila.empty() and end is None:
             nodo_atual = self.getNodeByID(fila.get())
-            # print(nodo_atual, endPos)
             if nodo_atual.getPos() in endPos:
                 end = nodo_atual
             else:
@@ -137,7 +136,6 @@ class Grafo:
 
         while len(fila)>0 and end is None:
             nodo_atual = self.getNodeByID(fila.pop())
-            # print(nodo_atual, endPos)
             if nodo_atual.getPos() in endPos:
                 end = nodo_atual
             else:
@@ -220,19 +218,20 @@ class Grafo:
 
         open_list = []
         closed_list = []
-        open_list.extend(list(map(lambda n : (n.getID(),0) , start)))
+        open_list.extend(list(map(lambda n : (n.getID(),0,1) , start)))
         for n in start:
             #  gScore[n.getID()] = 0
             #  fScore[n.getID()] = self.m_heuristic[n.getID()]
             parent[(n.getID(),0)] = (None, 0)
 
         while len(open_list) > 0:
-            current, normDiff = None, None
+            current, normDiff, currentNorm = None, None, None
 
-            for nID, nD in open_list:
-                if current == None or self.m_heuristic[nID] + nD < self.m_heuristic[current] + normDiff:
+            for nID, nD, nN in open_list:
+                if current == None or (self.m_heuristic[nID]/nN) + nD < (self.m_heuristic[current]/currentNorm) + normDiff:
                     current = nID
                     normDiff = nD
+                    currentNorm = nN
             
             if current == None:
                 return None
@@ -255,9 +254,10 @@ class Grafo:
                 nD = 0.5*((parentVel[0]*parentVel[0] + parentVel[1]*parentVel[1]) - (currVel[0]*currVel[0] + currVel[1]*currVel[1]))
                 if (adj, nD) not in open_list and (adj,nD) not in closed_list:
                     parent[(adj,nD)] = (current, normDiff)
-                    open_list.append((adj,nD))
+                    norm = (currVel[0]**2 + currVel[1]**2 +1)
+                    open_list.append((adj,nD,norm))
             
-            open_list.remove((current,normDiff))
-            closed_list.append((current,normDiff))
+            open_list.remove((current,normDiff,currentNorm))
+            closed_list.append((current,normDiff,currentNorm))
 
         return None

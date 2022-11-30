@@ -63,7 +63,7 @@ def comecaJogo(screen, ficheiroMapa):
     problema = Problema(diretoriaMapas+"/"+ficheiroMapa)
     problema.constroiGrafo()
 
-    opcoes = ["DFS - Depth First Search", "BFS - Breadth First Search", "A*", "Greedy", "Todos", "Ver Mapa", "Voltar"]
+    opcoes = ["DFS - Depth First Search", "BFS - Breadth First Search", "A*", "Gulosa", "Todos", "Ver Mapa", "Voltar"]
     nOpcoes = len(opcoes)
 
     selected = 0
@@ -87,29 +87,27 @@ def comecaJogo(screen, ficheiroMapa):
                         return 1
                     if selected == 0:
                         path, custo = problema.DFS()
-                        Mapa.desenhaMapa(mapa, [path], [custo])
+                        Mapa.desenhaMapa(mapa, [("DFS",path,custo)])
                     elif selected == 1:
                         path, custo = problema.BFS()
-                        Mapa.desenhaMapa(mapa, [path], [custo])
+                        Mapa.desenhaMapa(mapa, [("BFS",path,custo)])
                     elif selected == 2:
                         path, custo = problema.AStar()
-                        Mapa.desenhaMapa(mapa, [path], [custo])
+                        Mapa.desenhaMapa(mapa, [("A*",path,custo)])
                     elif selected == 3:
                         path, custo = problema.Greedy()
-                        Mapa.desenhaMapa(mapa, [path], [custo])
+                        Mapa.desenhaMapa(mapa, [("Gulosa",path,custo)])
                     elif selected == 4:
                         path1, custo1 = problema.DFS()
                         path2, custo2 = problema.BFS()
                         path3, custo3 = problema.AStar()
-                        paths : list[list[Node]] = []
-                        paths.append(path1)
-                        paths.append(path2)
-                        paths.append(path3)
-                        costs  : list[list[int]]= []
-                        costs.append(custo1)
-                        costs.append(custo2)
-                        costs.append(custo3)
-                        Mapa.desenhaMapa(mapa, paths, costs)
+                        path4, custo4 = problema.Greedy()
+                        resultList = []
+                        resultList.append(("DFS", path1, custo1))
+                        resultList.append(("BFS", path2, custo2))
+                        resultList.append(("A*", path3, custo3))
+                        resultList.append(("Gulosa", path4, custo4))
+                        Mapa.desenhaMapa(mapa, resultList)
                     elif selected == 5:
                         Mapa.desenhaMapa(mapa)
                 if event.key == pygame.K_ESCAPE:
