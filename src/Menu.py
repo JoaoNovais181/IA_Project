@@ -122,7 +122,7 @@ def selecionarMapa(screen):
 
     selected = 0
     mapaPorPag = 3
-    numPags = len(mapas) // mapaPorPag
+    numPags = len(mapas) // mapaPorPag + 1
     pagAtual = 0
     bg = pygame.image.load("../images/VectorRace.png")
     size = bg.get_size()
