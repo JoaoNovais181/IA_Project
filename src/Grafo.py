@@ -69,6 +69,7 @@ class Grafo:
         i = 0
         for i in range(0,len(path)-1):
             cost += self.getArcCost(path[i].getID(), path[i+1].getID())
+            #  print(path[i], path[i+1], cost)
 
         return cost
 
@@ -79,11 +80,16 @@ class Grafo:
         if n is not None:
             self.m_heuristic[n.getID()] = heuristic
 
-    def BFS(self, start:list[Node], endPos):
+    def BFS(self, start:list[Node], endPos, prohibitedPos = [], ignoreInitialVerification = False):
         # definir nodos visitados para evitar ciclos
         visited = set()
         fila = Queue()
         parent = dict()
+
+        if not ignoreInitialVerification:
+            for n in start:
+                if n.getPos() in prohibitedPos:
+                    start.remove(n)
 
         # adicionar o nodo inicial à fila e aos visitados
         for node in start:
@@ -100,6 +106,10 @@ class Grafo:
                 end = nodo_atual
             else:
                 for (adjacente, _) in self.m_graph[nodo_atual.getID()]:
+
+                    if self.getNodeByID(adjacente).getPos() in prohibitedPos:
+                        continue
+
                     if adjacente not in visited:
                         fila.put(adjacente)
                         parent[adjacente] = nodo_atual.getID()
@@ -120,11 +130,16 @@ class Grafo:
 
         return None
 
-    def DFS(self, start:list[Node], endPos):
+    def DFS(self, start:list[Node], endPos, prohibitedPos = [], ignoreInitialVerification = False):
         # definir nodos visitados para evitar ciclos
         visited = set()
         fila = []
         parent = dict()
+
+        if not ignoreInitialVerification:
+            for n in start:
+                if n.getPos() in prohibitedPos:
+                    start.remove(n)
 
         # adicionar o nodo inicial à fila e aos visitados
         for n in start:
@@ -136,11 +151,19 @@ class Grafo:
 
         while len(fila)>0 and end is None:
             nodo_atual = self.getNodeByID(fila.pop())
+
+            if not ignoreInitialVerification and nodo_atual.getPos() in prohibitedPos:
+                continue
+
             if nodo_atual.getPos() in endPos:
                 end = nodo_atual
             else:
                 paraMandar = []
                 for (adjacente, _) in self.m_graph[nodo_atual.getID()]:
+
+                    if self.getNodeByID(adjacente).getPos() in prohibitedPos:
+                        continue
+
                     if adjacente not in visited:
                         paraMandar.append(adjacente)
                         parent[adjacente] = nodo_atual.getID()
@@ -164,10 +187,15 @@ class Grafo:
 
         return None
 
-    def AStar(self, start:list[Node], endPos):
+    def AStar(self, start:list[Node], endPos, prohibitedPos = [], ignoreInitialVerification = False):
         gScore = {}
         fScore = {}
         parent = {}
+
+        if not ignoreInitialVerification:
+            for n in start:
+                if n.getPos() in prohibitedPos:
+                    start.remove(n)
 
         for node in self.m_nodes:
             gScore[node.getID()] = fScore[node.getID()] = float('inf')
@@ -195,6 +223,11 @@ class Grafo:
 
             open_list.remove(current)
             for adj, custo in self.m_graph[current]:
+                adjNode = self.getNodeByID(adj)
+                
+                if adjNode.getPos() in prohibitedPos:
+                    continue
+
                 tentative_gScore = gScore[current] + custo
                 if tentative_gScore < gScore[adj]:
                     parentVel = currentNode.getVel()
@@ -208,13 +241,15 @@ class Grafo:
                         open_list.append(adj)
                         open_list.sort(key=(lambda el : fScore[el]))
 
-        return None
+        return None, None
 
-    def Greedy(self, start:list[Node], endPos):
+    def Greedy(self, start:list[Node], endPos, prohibitedPos = [], ignoreInitialVerification = False):
         parent = {}
 
-        #  for node in self.m_nodes:
-            #  gScore[node.getID()] = fScore[node.getID()] = float('inf')
+        if not ignoreInitialVerification:
+            for n in start:
+                if n.getPos() in prohibitedPos:
+                    start.remove(n)
 
         open_list = []
         closed_list = []
@@ -249,6 +284,10 @@ class Grafo:
                 return path, self.pathCost(path)
 
             for adj, _ in self.m_graph[current]:
+                
+                if self.getNodeByID(adj).getPos() in prohibitedPos:
+                    continue
+
                 parentVel = currentNode.getVel()
                 currVel   = self.getNodeByID(adj).getVel()
                 nD = 0.5*((parentVel[0]*parentVel[0] + parentVel[1]*parentVel[1]) - (currVel[0]*currVel[0] + currVel[1]*currVel[1]))

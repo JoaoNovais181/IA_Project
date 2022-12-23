@@ -1,6 +1,5 @@
-#  from copy  import deepcopy
-#  import math
-import os, pickle
+import os, pickle, subprocess
+#  import pygame as pg
 from Grafo import Grafo
 from Node  import Node
 import Mapa as m
@@ -39,6 +38,9 @@ class Problema:
                     if isinstance(obj, Grafo):
                         self.grafo = obj
                         return
+
+
+        subprocess.run(["/usr/bin/notify-send", "--icon=warning", "Grafo vai ser gerado, pode demorar um bocado..."])
         
         initialStates = list(map(lambda x : (x,x, [0,0]), self.inicio))
         expand = []
@@ -50,6 +52,7 @@ class Problema:
         maxY = len(self.mapa)
 
         while len(expand) > 0:
+            #  print(len(expand), len(expanded))
             currState = expand.pop(0)
             (currPos, prevPos, currVel) = currState
             expandedState = self.expandState(currState)
@@ -64,6 +67,7 @@ class Problema:
                 self.grafo.addEdge(Node(currPos,currVel), Node(pos,vel), weight)
                 if f"{pos},{vel}" not in expanded and (pos, pPos, vel) not in expand:
                     expand.append((pos, pPos, vel))
+        subprocess.run(["/usr/bin/notify-send", "--icon=warning", "Grafo Gerado!"])
 
         with open(graphDir + "/" + ficheiroGrafo, "wb") as fileToStore:
             pickle.dump(self.grafo, fileToStore)
@@ -262,6 +266,118 @@ class Problema:
 
     def Greedy(self):
         return self.grafo.Greedy(list(map(lambda p : self.grafo.getNodeBySearchNode(Node(p,[0,0])), self.inicio)), self.fim)
+
+    def Competicao(self, competitors):
+
+        def getCompetitorDistToEnd(competitorCurrNode):
+            pos = competitorCurrNode.getPos()
+            return self.mapaDistancias[pos[1]][pos[0]]
+
+        if len(competitors) > len(self.inicio):
+            return None
+
+        functions = {"A*":self.AStar, "Greedy":self.Greedy, "BFS":self.BFS, "DFS":self.DFS}
+        functions2 = {"A*":self.grafo.AStar, "Greedy":self.grafo.Greedy, "BFS":self.grafo.BFS, "DFS":self.grafo.DFS}
+
+        paths = {}
+        finalPath = {}
+
+        for competitor in competitors.keys():
+            path, cost = functions[competitors[competitor]]()
+            paths[competitor] = path
+            finalPath[competitor] = []
+
+        competitorsList = [key for key in competitors.keys()]
+        competitorCurrNode = {}
+        for competitor in competitorsList:
+            competitorCurrNode[competitor] = paths[competitor][0]
+        competitorsList.sort(reverse=True, key=(lambda c : getCompetitorDistToEnd(competitorCurrNode[c])))
+        #  orderedCompetitors = competitorsList.sort(key=(lambda c : self.mapaDistancias[paths[c][0].getPos()[1]][paths[c][0].getPos()[0]]))
+
+        lastNode = {}
+        ignoreIV = {}
+        for competitor in competitorsList:
+            lastNode[competitor] = None
+            ignoreIV[competitor] = False
+        occupiedPositions = []
+        finished = 0
+        i = 0
+        while finished != len(competitorsList):
+            #  print(f"Iter{i}, {occupiedPositions}")
+            i+=1
+            for competitor in competitorsList:
+                competitorPos = competitorCurrNode[competitor].getPos()
+                if competitorPos in self.fim:
+                    if (competitor, competitorPos) not in occupiedPositions:
+                        occupiedPositions.pop(list(map(lambda x : x[0], occupiedPositions)).index(competitor))
+                        occupiedPositions.append((competitor,competitorPos))
+                        
+                        finalPath[competitor].append(competitorCurrNode[competitor])
+
+                        finished += 1
+                    continue
+
+                if competitorPos in map(lambda x : x[1], occupiedPositions):
+                    initialNodes = None
+                    if not ignoreIV[competitor]:
+                        initialNodes = list(map(lambda p : self.grafo.getNodeBySearchNode(Node(p,[0,0])), self.inicio))
+                        for n in initialNodes:
+                            if n.getPos() in map(lambda p : p[1],occupiedPositions):
+                                initialNodes.remove(n)
+
+                    else:
+                        initialNodes = [lastNode[competitor]]
+                    
     
+                    for c,pos in occupiedPositions:
+                        if c == competitor:
+                            occupiedPositions.remove((c,pos))
+                            break
+                    
+
+                    path, cost = functions2[competitors[competitor]](initialNodes, self.fim, list(map(lambda x : x[1], occupiedPositions)), ignoreIV[competitor]) 
+                    if not ignoreIV[competitor] :
+                        paths[competitor] = path
+                        ignoreIV[competitor] = True
+                    else:
+                        if path is None:
+                            print(f"competitor:{competitor}, alg:{competitors[competitor]}, currPos:{competitorPos}, initialNodes: {initialNodes}, occupiedPositions:{occupiedPositions}, lastNode:{lastNode}")
+                        paths[competitor] = path[1::]
+                    competitorCurrNode[competitor] = path[0]
+                
+                lastNode[competitor] = paths[competitor].pop(0)
+
+                for c,pos in occupiedPositions:
+                    if c == competitor:
+                        occupiedPositions.remove((c,pos))
+                        break
+                #  occupiedPositions.pop(list(map(lambda x : x[0], occupiedPositions)).index(competitor))
+                occupiedPositions.append((competitor,lastNode[competitor].getPos()))
+                finalPath[competitor].append(lastNode[competitor])
+                competitorCurrNode[competitor] = paths[competitor][0]
+
+            competitorsList.sort(reverse=True, key=(lambda c : getCompetitorDistToEnd(competitorCurrNode[c])))
+
+        for k in finalPath.keys():
+            path = finalPath[k]
+            custo = self.grafo.pathCost(path)
+            #  print(custo)
+            finalPath[k] = (path,custo)
+        return finalPath
+
+
     def printGrafo(self):
         print(self.grafo.m_nodes)
+
+
+
+#  competitors = {1:"Greedy", 2:"Greedy"}
+#  p = Problema("../mapas/mapaComplicado.txt")
+#  p.constroiGrafo()
+#  d = p.Competicao(competitors)
+#  
+#  resultList = []
+#  for k in d.keys():
+    #  resultList.append((k,d[k][0],d[k][1]))
+#  
+#  m.desenhaMapa(p.mapa, resultList)

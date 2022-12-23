@@ -1,6 +1,10 @@
-import sys
+import sys, os
 import pygame
 from Node import Node
+
+COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255)]
+
+
 
 def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2,color: pygame.Color,bodyWidth: int = 2,headWidth: int = 4,headHeight: int = 2,):
     """Draw an arrow between start and end with the arrow head at the end.
@@ -52,8 +56,8 @@ def draw_arrow(surface: pygame.Surface,start: pygame.Vector2,end: pygame.Vector2
 
 
 
-def desenhaMapa (Map, resultList : list[list[tuple[str, Node,int]]] | None = None):
-    def drawNodePath (node1 : Node, node2 : Node, color):
+def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = None, immediate : bool = False):
+    def drawNodePath (node1 : Node, node2 : Node, color, diff=0):
         posi = node1.getPos()
         posf = node2.getPos()
         xi = posi[0]*scalex + scalex*0.5
@@ -62,28 +66,28 @@ def desenhaMapa (Map, resultList : list[list[tuple[str, Node,int]]] | None = Non
         yf = posf[1]*scaley + scaley*0.5
         inicio = pygame.Vector2((xi,yi))
         fim = pygame.Vector2((xf,yf))
-        draw_arrow(screen, inicio, fim, color, 3, 10, 10)
+        draw_arrow(screen, inicio, fim, color, 3+diff, 10+diff, 10+diff)
         pos = node1.getPos()
         x = pos[0]*scalex + scalex*0.5
         y = pos[1]*scaley + scaley*0.5
-        pygame.draw.circle(screen, color, (x,y), radius)
+        pygame.draw.circle(screen, color, (x,y), radius+diff)
         pos = node2.getPos()
         x = pos[0]*scalex + scalex*0.5
         y = pos[1]*scaley + scaley*0.5
-        pygame.draw.circle(screen, color, (x,y), radius)
+        pygame.draw.circle(screen, color, (x,y), radius+diff)
         pygame.display.flip()
 
-    paths = list(map(lambda p: p[1], resultList))
 
     xpix = len(Map[0])
     ypix = len(Map)
     scalex, scaley = 30,30
+    os.environ['SDL_VIDEO_CENTERED'] = '1'
 
     ## Iniciar o pygame ##
     pygame.init()
 
     ## Criar a janela ##
-    screen = pygame.display.set_mode((xpix*scalex+200,(ypix*scaley)))
+    screen = pygame.display.set_mode((xpix*scalex+ (0 if resultList is None else 200),(ypix*scaley)))
     screen.fill((50,50,50))
     ## Definir o nome da janela ##
     pygame.display.set_caption('Vector Race')
@@ -111,44 +115,46 @@ def desenhaMapa (Map, resultList : list[list[tuple[str, Node,int]]] | None = Non
             pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)
 
     clock = pygame.time.Clock()
+    
 
-    if paths is not None:
+    if resultList is not None:
+        resultList.sort(key=(lambda t : t[2]))
+        paths = list(map(lambda p: p[1], resultList))
+        nPaths = len(paths)
+
         radius = scalex * 0.25
-        colors = [(255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255)]
-        biggest = max(list(map(len, paths)))
-        for i in range(biggest - 1):
-            drawAbove = []
-            for j, path in enumerate(paths):
-                if i < len(path) - 1:
-                    node1 = path[i]
-                    node2 = path[i+1]
-                    drawNodePath(node1,node2, colors[j])
-                else:
-                    drawAbove.append((path, colors[j]))
+      
+        if not immediate:
+            biggest = max(list(map(len, paths)))
+            for i in range(biggest - 1):
+                for j, path in enumerate(paths):
+                    if i < len(path) - 1:
+                        node1 = path[i]
+                        node2 = path[i+1]
+                        drawNodePath(node1,node2, COLORS[j], (nPaths-j))
+                clock.tick(10)
+        else:
+            for i, path in enumerate(paths):
+                for j in range(len(path)-1):
+                    node1 = path[j]
+                    node2 = path[j+1]
+                    drawNodePath(node1, node2, COLORS[i], nPaths-i)
 
-            if len(drawAbove) > 0:
-                for path, color in drawAbove:
-                    for j in range(len(path)-1):
-                        drawNodePath(path[j], path[j+1], color)
-
-                drawAbove.clear()
-            clock.tick(10)
-
-    height = 40
-    fontSize = 20
-    if len(resultList) > 1 and height*len(resultList) > ypix*scaley:
-        height = ypix-scaley//len(resultList)
-        fontSize = height/2
+        height = 40
+        fontSize = 20
+        if len(resultList) > 1 and height*len(resultList) > ypix*scaley:
+            height = ypix-scaley//len(resultList)
+            fontSize = height/2
         
 
-    for i,(name, _, cost) in enumerate(resultList):
-        font = pygame.font.Font('freesansbold.ttf', fontSize)
-        text = font.render(f'{name}, custo={cost}', True, (0,0,0), colors[i])
-        textRect = text.get_rect()
-        bgRect = pygame.Rect((xpix*scalex,i*height), (200,height))
-        textRect.center = bgRect.center
-        pygame.draw.rect(screen, colors[i], bgRect)
-        screen.blit(text, textRect)
+        for i,(name, _, cost) in enumerate(resultList):
+            font = pygame.font.Font('freesansbold.ttf', fontSize)
+            text = font.render(f'{name}, custo={cost}', True, (0,0,0), COLORS[i])
+            textRect = text.get_rect()
+            bgRect = pygame.Rect((xpix*scalex,i*height), (200,height))
+            textRect.center = bgRect.center
+            pygame.draw.rect(screen, COLORS[i], bgRect)
+            screen.blit(text, textRect)
 
 
     ## Game loop ##
