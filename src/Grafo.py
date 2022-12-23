@@ -5,15 +5,19 @@ from Node import Node
 class Grafo:
 
     def __init__(self):
+        #contador de nodos, de forma a atribuir ID's aos nodos
         self.nodeCounter = 0
+        #lista de nodos presentes no grafo
         self.m_nodes  	 = []
-        # self.m_nodeID 	 = {}
+        #dicionario usado para associar o id de um nodo ao tuplo (id,peso) com os nodos a que ele está ligado
         self.m_graph  	 = {}
+        #dicionario para guardar a distancia de cada nodo ao nodo final (parte da heuristica)
         self.m_heuristic = {}
-        self.m_h      	 = {}
+#         self.m_h      	 = {}
 
     def __str__(self):
         out = ""
+        # para cada par chave-valor no dicionario de ligacoes adicionar ao resultado final "node IDchave : (IDvalor,peso)"
         for key, val in self.m_graph:
             out = out + f"node {str(key)} : {str(val)}\n"
 
@@ -21,24 +25,28 @@ class Grafo:
 
     def addEdge(self, node1 : Node, node2 : Node, weight):
 
+        # usar o metodo addNode para adicionar um nodo ao grafo ou retornar o guardado se este já existir
         node1 = self.addNode(node1)
 
         node2 = self.addNode(node2)
 
         # self.m_graph[self.m_nodeID[node1]].add((self.m_nodeID[node2], weight))
+        # adicionar a ligacao entre os nodos
         self.m_graph[node1.getID()].add((node2.getID(), weight))
 
     def addNode(self, node : Node):
+        # se o nodo nao estiver no grafo, adicionamo-lo
         if node not in self.m_nodes:
             self.m_nodes.append(node)
             node.setID(self.nodeCounter)
             self.nodeCounter += 1
             self.m_graph[node.getID()] = set()
             return node
+        #caso contrário retornamos o que está no grafo
         return self.getNodeBySearchNode(node)
-
+    
     def getNodeBySearchNode(self, searchNode):
-
+    
         for node in self.m_nodes:
             if node == searchNode:
                 return node
