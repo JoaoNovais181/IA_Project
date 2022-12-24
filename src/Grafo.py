@@ -29,7 +29,6 @@ class Grafo:
 
         node2 = self.addNode(node2)
 
-        # self.m_graph[self.m_nodeID[node1]].add((self.m_nodeID[node2], weight))
         # adicionar a ligacao entre os nodos
         self.m_graph[node1.getID()].add((node2.getID(), weight))
 
@@ -76,7 +75,6 @@ class Grafo:
         i = 0
         for i in range(0,len(path)-1):
             cost += self.getArcCost(path[i].getID(), path[i+1].getID())
-            #  print(path[i], path[i+1], cost)
 
         return cost
 

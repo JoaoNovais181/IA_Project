@@ -2,8 +2,8 @@ from perlin_noise import PerlinNoise
 import pygame, sys, os
 import random
 
-ridealbleLimit = -0.15
-minPlayablePercent = 0.6
+ridealbleLimit = -0.05
+minPlayablePercent = 0.5
 
 def cleanupMap (m):
     notRideable = 0
@@ -111,7 +111,7 @@ def main ():
             return -1
 
     ## Variaveis de geracao para o mapa
-    xpix,ypix = 25,20
+    xpix,ypix = 35,30
     octaves = 2
     multipleNoise = True
     ## Obter mapa e seed usada no final ##

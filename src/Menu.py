@@ -1,4 +1,5 @@
 import pygame, sys, os
+from Popup import Popup
 from Problema import Problema
 import Mapa
 
@@ -10,37 +11,6 @@ SIZE = 700,500
 bg = pygame.image.load("../images/VectorRace.png")
 bg = pygame.transform.scale(bg, SIZE)
 
-
-class Popup():
-
-    def __init__(self, text, x=0, y=0):
-
-        font = pygame.font.Font('freesansbold.ttf', 20)
-        self.text = text
-        text_image = font.render(text, True, (0,0,0))
-
-        width, height = text_image.get_width() + 20, text_image.get_height() + 20
-        self.image = pygame.Surface((width,height))
-        self.image.fill((0,0,0))
-        self.image.fill((255,0,0), pygame.Rect(5, 5, width - 10, height-10))
-
-        self.rect = self.image.get_rect()
-        text_rect = text_image.get_rect(center = self.rect.center)
-
-        self.image.blit(text_image, text_rect)
-
-        self.rect.center = (x, y)
-
-    def draw(self, surface):
-
-        surface.blit(self.image, self.rect)
-
-    def handle_event(self, event):
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_q:
-                return True
-        return False
 
 
 def printOpcoes(options, screen, selected : int | None = 0):

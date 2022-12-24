@@ -264,41 +264,69 @@ class Problema:
     def Greedy(self):
         return self.grafo.Greedy(list(map(lambda p : self.grafo.getNodeBySearchNode(Node(p,[0,0])), self.inicio)), self.fim)
 
+    # competitors é um diciorio que associa numero-algoritmo de procura
     def Competicao(self, competitors):
 
         def getCompetitorDistToEnd(competitorCurrNode):
             pos = competitorCurrNode.getPos()
             return self.mapaDistancias[pos[1]][pos[0]]
 
+        # se houverem mais jogadores que posicoes de inicio, não faz nada
         if len(competitors) > len(self.inicio):
             return None
 
+        # dicionario que associa algoritmo - funcao do algoritmo
         functions = {"A*":self.AStar, "Greedy":self.Greedy, "BFS":self.BFS, "DFS":self.DFS}
+        # dicionario que associa algoritmo - funcao do algoritmo (mas comecando noutra posicao)
         functions2 = {"A*":self.grafo.AStar, "Greedy":self.grafo.Greedy, "BFS":self.grafo.BFS, "DFS":self.grafo.DFS}
 
+        # dicionario que associa jogador - caminho a seguir
         paths = {}
+        # dicionario que associa jogador - caminho final
         finalPath = {}
 
+        # para cada participante
         for competitor in competitors.keys():
-            path, cost = functions[competitors[competitor]]()
+            # calcular caminho a seguir inicial
+            path, _ = functions[competitors[competitor]]()
+            # guardar caminho a seguir
             paths[competitor] = path
+            # inicializar o caminho final 
             finalPath[competitor] = []
 
+        # lista com o nome de todos os jogadores
         competitorsList = [key for key in competitors.keys()]
+        # dicionario que associa jogador - nodo atual 
         competitorCurrNode = {}
+
+        # para cada jogador
         for competitor in competitorsList:
+            # definir o seu nodo atual como o primeiro nodo do caminho a seguir
             competitorCurrNode[competitor] = paths[competitor][0]
+        
+        # ordenar lista de jogadores consoante a sua distancia ao fim
         competitorsList.sort(reverse=True, key=(lambda c : getCompetitorDistToEnd(competitorCurrNode[c])))
 
+        # dicionario que associa jogador - nodo anterior
         lastNode = {}
+        # para cada jogador
         for competitor in competitorsList:
+            # nodo anterior = None
             lastNode[competitor] = None
+        # lista de posicoes ocupadas, no formato (jogador, posicao)
         occupiedPositions = []
+        # numero de jogadores que ja acabaram
         finished = 0
+        # enquanto nao acabarem todos
         while finished != len(competitorsList):
+            # para cada jogador
             for competitor in competitorsList:
+                # posicao atual do jogador
                 competitorPos = competitorCurrNode[competitor].getPos()
+
+                # se a posicao atual estiver no fim
                 if competitorPos in self.fim:
+                    # adicionar posicao final à lista de posicoes ocupadas
                     if (competitor, competitorPos) not in occupiedPositions:
                         occupiedPositions.pop(list(map(lambda x : x[0], occupiedPositions)).index(competitor))
                         occupiedPositions.append((competitor,competitorPos))
@@ -308,32 +336,37 @@ class Problema:
                         finished += 1
                     continue
 
+                # se a posicao do jogador estiver na lista de posicoes ocupadas
                 if competitorPos in map(lambda x : x[1], occupiedPositions):
                     initialNodes = None
+                    # se estiver na primeira jogada (ou seja, o caminho final for vazio)
                     if len(finalPath[competitor]) == 0:
+                        # nodos iniciais irao ser os nodos de inicio
                         initialNodes = list(map(lambda p : self.grafo.getNodeBySearchNode(Node(p,[0,0])), self.inicio))
                         for n in initialNodes:
+                            # se algum dos nodos iniciais estiver ocupado retiramos da lista de nodos iniciais
                             if n.getPos() in map(lambda p : p[1],occupiedPositions):
                                 initialNodes.remove(n)
 
                     else:
+                        # caso contrario, nodo inicial ira ser o nodo anterior
                         initialNodes = [lastNode[competitor]]
                     
-    
+                    # remover das posicoes ocupadas a posicao do jogador atual
                     for c,pos in occupiedPositions:
                         if c == competitor:
                             occupiedPositions.remove((c,pos))
                             break
                     
-
-                    path, cost = functions2[competitors[competitor]](initialNodes, self.fim, list(map(lambda x : x[1], occupiedPositions)), len(finalPath[competitor])!=0) 
+                    # calculo do caminho a seguir                                                                                        pode ignorar posicao inicial     
+                    path, _ = functions2[competitors[competitor]](initialNodes, self.fim, list(map(lambda x : x[1], occupiedPositions)), len(finalPath[competitor])!=0) 
                     if len(finalPath[competitor]) == 0 :
                         paths[competitor] = path
                     else:
                         path.pop(0)
                         paths[competitor] = path
 
-                    competitorCurrNode[competitor] = path                 
+                    competitorCurrNode[competitor] = path[0]                 
                 lastNode[competitor] = paths[competitor].pop(0)
 
                 for c,pos in occupiedPositions:

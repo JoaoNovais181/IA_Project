@@ -1,6 +1,7 @@
 import sys, os
 import pygame
 from Node import Node
+from Popup import Popup
 
 COLORS = [(255,0,0), (0,255,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,255,255)]
 
@@ -115,7 +116,7 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
             pygame.draw.rect(screen, gridColor , pygame.Rect(x*scalex, y*scaley, scalex, scaley),1)
 
     clock = pygame.time.Clock()
-    
+
 
     if resultList is not None:
         resultList.sort(key=(lambda t : t[2]))
@@ -123,7 +124,7 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
         nPaths = len(paths)
 
         radius = scalex * 0.25
-      
+
         if not immediate:
             biggest = max(list(map(len, paths)))
             for i in range(biggest - 1):
@@ -145,7 +146,7 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
         if len(resultList) > 1 and height*len(resultList) > ypix*scaley:
             height = ypix-scaley//len(resultList)
             fontSize = height/2
-        
+
 
         for i,(name, _, cost) in enumerate(resultList):
             font = pygame.font.Font('freesansbold.ttf', fontSize)
@@ -156,7 +157,7 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
             pygame.draw.rect(screen, COLORS[i], bgRect)
             screen.blit(text, textRect)
 
-
+    voltarMensagem = Popup("Pressione ESC para voltar", 10, 10, False)
     ## Game loop ##
     while True:
 
@@ -173,6 +174,7 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
         clock.tick(30)
 
         ## Desenhar imagem
+        voltarMensagem.draw(screen)
         pygame.display.flip()
 
 def carregaMapa (filename : str) -> list[list[str]]:
