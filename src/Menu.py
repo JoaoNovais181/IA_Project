@@ -25,9 +25,8 @@ class Popup():
         self.image.fill((255,0,0), pygame.Rect(5, 5, width - 10, height-10))
 
         self.rect = self.image.get_rect()
-         
         text_rect = text_image.get_rect(center = self.rect.center)
-        
+
         self.image.blit(text_image, text_rect)
 
         self.rect.center = (x, y)
@@ -56,7 +55,7 @@ def printOpcoes(options, screen, selected : int | None = 0):
         text = font.render(options[i-1], True, (0,0,0))
         textRect = text.get_rect()
         textRect.topleft = [int(width/2-textRect.width/2),int(i*yOffset+5)]
-        
+
         pygame.draw.rect(screen, (0,0,0), pygame.Rect(int(width/2-textRect.width/2 - 13), int(i*yOffset-3), textRect.width+26, textRect.height+16))
         if selected is not None:
             pygame.draw.rect(screen, (255,0,0) if selected==i-1 else (255,150,150), pygame.Rect(int(width/2-textRect.width/2 - 10), int(i*yOffset), textRect.width+20, textRect.height+10))
@@ -71,7 +70,7 @@ def getNumJog(screen, problema : Problema) -> int:
 
     numJogadores = 0
     numJogadoresEscolhido = False
-    
+
     listaAvisos = []
     opcoes = [f"Defina um numero de jogadores (max = {maxJog})", str(numJogadores)]
 
@@ -96,12 +95,12 @@ def getNumJog(screen, problema : Problema) -> int:
                     numJogadores += 1
                     opcoes[1] = str(numJogadores)
                 if event.key == pygame.K_ESCAPE:
-                    return        
+                    return
             for popup in listaAvisos:
                 delete = popup.handle_event(event)
                 if delete:
                     listaAvisos.remove(popup)
-    
+
         printOpcoes(opcoes, screen, None)
         screen.blit(bg, (0, 0))
         for popup in listaAvisos:
@@ -147,7 +146,7 @@ def getJogadores(screen, numJogadores):
             printOpcoes(opcoes, screen, selected+1)
             screen.blit(bg, (0, 0))
             clock.tick(30)
-        
+
         competitors[i] = algoritmoJogador
 
     return competitors
@@ -155,15 +154,15 @@ def getJogadores(screen, numJogadores):
 def competitivo(screen, problema : Problema):
 
     numJogadores = getNumJog(screen, problema)
-    
+
     if numJogadores is None:
         return
 
     competitors = getJogadores(screen, numJogadores)
-    
+
     if competitors is None:
         return
-   
+
     mensagem = Popup("Resultados vão ser calculados, aguarde..", screen.get_rect().centerx, screen.get_rect().centery)
     mensagem.draw(screen)
     pygame.display.flip()
@@ -232,7 +231,7 @@ def comecaJogo(screen, ficheiroMapa):
                         Mapa.desenhaMapa(mapa)
                 if event.key == pygame.K_ESCAPE:
                     return
-       
+
         printOpcoes(opcoes, screen, selected)
         screen.blit(bg, (0, 0))
         clock.tick(30)
@@ -275,7 +274,7 @@ def selecionarMapa(screen):
                         if len(opcoes[selected]) > 0:
                             break
 
-                if event.key == pygame.K_RETURN:    
+                if event.key == pygame.K_RETURN:
                     if opcoes[selected] == "Voltar":
                         return
                     else:
@@ -284,36 +283,24 @@ def selecionarMapa(screen):
                         pygame.display.flip()
 
 
-                        res = comecaJogo(screen, opcoes[selected])               
+                        res = comecaJogo(screen, opcoes[selected])
                         if res == 0:
                             return
-                
+
                 if event.key == pygame.K_RIGHT:
                     pagAtual = (pagAtual+1)%numPags
 
                 if event.key == pygame.K_LEFT:
                     pagAtual = (pagAtual+numPags-1)%numPags
-            
 
                 if event.key == pygame.K_ESCAPE:
                     return
 
-        
-
-        screen.blit(bg, (0, 0)) 
+        screen.blit(bg, (0, 0))
         printOpcoes(opcoes, screen, selected)
         clock.tick(30)
 
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode(SIZE)
-
-    pygame.display.set_caption("Vector Race")
-    screen.fill((255,200,200))
-
-
-
-
+def menuPrincipal(screen):
     selected = 0
     opcoes = {"Selecionar Mapa":selecionarMapa, "Sair":sys.exit}
     opcoesPrint = ["Menu Principal", "Selecionar Mapa", "Sair"]
@@ -331,17 +318,22 @@ def main():
                     selected = (selected+1)%len(opcoes)
                 if event.key == pygame.K_UP:
                     selected = (selected-1 + len(opcoes))%len(opcoes)
-                if event.key == pygame.K_RETURN:    
+                if event.key == pygame.K_RETURN:
                     if selected == 0:
                         selecionarMapa(screen)
                     else:
                         sys.exit()
-        
-        screen.blit(bg, (0, 0)) 
+
+        screen.blit(bg, (0, 0))
         printOpcoes(opcoesPrint, screen, selected+1)
 
         clock.tick(30)
 
 
-if __name__ == "__main__":
-    main()
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode(SIZE)
+
+    pygame.display.set_caption("Vector Race")
+
+    menuPrincipal(screen)
