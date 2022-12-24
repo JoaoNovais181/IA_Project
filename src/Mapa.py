@@ -132,7 +132,7 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
                         node1 = path[i]
                         node2 = path[i+1]
                         drawNodePath(node1,node2, COLORS[j], (nPaths-j))
-                clock.tick(10)
+                clock.tick(5)
         else:
             for i, path in enumerate(paths):
                 for j in range(len(path)-1):

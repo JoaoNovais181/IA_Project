@@ -13,7 +13,6 @@ class Grafo:
         self.m_graph  	 = {}
         #dicionario para guardar a distancia de cada nodo ao nodo final (parte da heuristica)
         self.m_heuristic = {}
-#         self.m_h      	 = {}
 
     def __str__(self):
         out = ""
@@ -101,35 +100,37 @@ class Grafo:
 
         # adicionar o nodo inicial à fila e aos visitados
         for node in start:
-            fila.put(node.getID())
-            visited.add(node.getID())
-            parent[node.getID()] = None
+            fila.put((0, node.getID()))
+            visited.add((0, node.getID()))
+            parent[(0,node.getID())] = None
 
 
         end = None
 
         while not fila.empty() and end is None:
-            nodo_atual = self.getNodeByID(fila.get())
+            depth, nID = fila.get()
+            nodo_atual = self.getNodeByID(nID)
             if nodo_atual.getPos() in endPos:
-                end = nodo_atual
+                endDepth, end = depth, nodo_atual
             else:
                 for (adjacente, _) in self.m_graph[nodo_atual.getID()]:
 
-                    if self.getNodeByID(adjacente).getPos() in prohibitedPos:
+                    if depth == 0 and self.getNodeByID(adjacente).getPos() in prohibitedPos:
                         continue
 
-                    if adjacente not in visited:
-                        fila.put(adjacente)
-                        parent[adjacente] = nodo_atual.getID()
-                        visited.add(adjacente)
+                    if (depth+1, adjacente) not in visited:
+                        fila.put((depth+1,adjacente))
+                        parent[(depth+1, adjacente)] = (depth, nodo_atual.getID())
+                        visited.add((depth+1, adjacente))
         # Reconstruir o caminho
         path = []
         if end is not None:
             path.append(end)
-            while parent[end.getID()] is not None:
-                parentNode = self.getNodeByID(parent[end.getID()])
+            while parent[(endDepth, end.getID())] is not None:
+                parentNode = self.getNodeByID(parent[(endDepth, end.getID())][1])
                 path.append(parentNode)
                 end = parentNode
+                endDepth -= 1
 
             path.reverse()
             # funçao calcula custo caminho
@@ -151,31 +152,29 @@ class Grafo:
 
         # adicionar o nodo inicial à fila e aos visitados
         for n in start:
-            fila.append(n.getID())
-            visited.add(n.getID())
-            parent[n.getID()] = None
+            fila.append((0,n.getID()))
+            visited.add((0,n.getID()))
+            parent[(0,n.getID())] = None
 
         end = None
 
         while len(fila)>0 and end is None:
-            nodo_atual = self.getNodeByID(fila.pop())
-
-            if not ignoreInitialVerification and nodo_atual.getPos() in prohibitedPos:
-                continue
+            depth, nID = fila.pop() 
+            nodo_atual = self.getNodeByID(nID)
 
             if nodo_atual.getPos() in endPos:
-                end = nodo_atual
+                endDepth, end = depth, nodo_atual
             else:
                 paraMandar = []
                 for (adjacente, _) in self.m_graph[nodo_atual.getID()]:
 
-                    if self.getNodeByID(adjacente).getPos() in prohibitedPos:
+                    if depth == 0 and self.getNodeByID(adjacente).getPos() in prohibitedPos:
                         continue
 
                     if adjacente not in visited:
-                        paraMandar.append(adjacente)
-                        parent[adjacente] = nodo_atual.getID()
-                        visited.add(adjacente)
+                        paraMandar.append((depth + 1, adjacente))
+                        parent[(depth+1,adjacente)] = nodo_atual.getID()
+                        visited.add((depth+1,adjacente))
                 paraMandar.reverse()
                 fila.extend(paraMandar)
 
@@ -183,10 +182,11 @@ class Grafo:
         path = []
         if end is not None:
             path.append(end)
-            while parent[end.getID()] is not None:
-                parentNode = self.getNodeByID(parent[end.getID()])
+            while parent[(endDepth, end.getID())] is not None:
+                parentNode = self.getNodeByID(parent[(endDepth, end.getID())][1])
                 path.append(parentNode)
                 end = parentNode
+                endDepth -= 1
 
             path.reverse()
             # funçao calcula custo caminho
@@ -199,7 +199,7 @@ class Grafo:
         gScore = {}
         fScore = {}
         parent = {}
-
+        
         if not ignoreInitialVerification:
             for n in start:
                 if n.getPos() in prohibitedPos:
@@ -209,31 +209,31 @@ class Grafo:
             gScore[node.getID()] = fScore[node.getID()] = float('inf')
 
         open_list = []
-        open_list.extend(list(map(lambda n : n.getID(), start)))
+        open_list.extend(list(map(lambda n : (0,n.getID()), start)))
         for n in start:
             gScore[n.getID()] = 0
             fScore[n.getID()] = self.m_heuristic[n.getID()]
-            parent[n.getID()] = None
+            parent[(0,n.getID())] = None,None
 
         while len(open_list) > 0:
-            current = open_list[0]
+            depth, current = open_list[0]
             currentNode : Node = self.getNodeByID(current)
 
             if currentNode.getPos() in endPos:
                 path = []
                 while current is not None:
                     path.append(self.getNodeByID(current))
-                    current = parent[current]
+                    depth, current = parent[(depth,current)]
 
                 path.reverse()
 
                 return path, self.pathCost(path)
 
-            open_list.remove(current)
+            open_list.remove((depth,current))
             for adj, custo in self.m_graph[current]:
                 adjNode = self.getNodeByID(adj)
                 
-                if adjNode.getPos() in prohibitedPos:
+                if depth == 0 and adjNode.getPos() in prohibitedPos:
                     continue
 
                 tentative_gScore = gScore[current] + custo
@@ -241,13 +241,13 @@ class Grafo:
                     parentVel = currentNode.getVel()
                     currVel   = self.getNodeByID(adj).getVel()
                     normDiff = 0.5*((parentVel[0]*parentVel[0] + parentVel[1]*parentVel[1]) - (currVel[0]*currVel[0] + currVel[1]*currVel[1]))
-                    parent[adj] = current
+                    parent[(depth+1,adj)] = (depth,current)
                     gScore[adj] = tentative_gScore
                     fScore[adj] = (tentative_gScore + self.m_heuristic[adj]) / (currVel[0]*currVel[0] + currVel[1]*currVel[1]+1) + normDiff
 
                     if adj not in open_list:
-                        open_list.append(adj)
-                        open_list.sort(key=(lambda el : fScore[el]))
+                        open_list.append((depth+1,adj))
+                        open_list.sort(key=(lambda el : fScore[el[1]]))
 
         return None, None
 
@@ -261,17 +261,16 @@ class Grafo:
 
         open_list = []
         closed_list = []
-        open_list.extend(list(map(lambda n : (n.getID(),0,1) , start)))
+        open_list.extend(list(map(lambda n : (0,n.getID(),0,1) , start)))
         for n in start:
-            #  gScore[n.getID()] = 0
-            #  fScore[n.getID()] = self.m_heuristic[n.getID()]
-            parent[(n.getID(),0)] = (None, 0)
+            parent[(0,n.getID(),0)] = (None, None, 0)
 
         while len(open_list) > 0:
-            current, normDiff, currentNorm = None, None, None
+            depth, current, normDiff, currentNorm = None, None, None, None
 
-            for nID, nD, nN in open_list:
+            for d, nID, nD, nN in open_list:
                 if current == None or (self.m_heuristic[nID]/nN) + nD < (self.m_heuristic[current]/currentNorm) + normDiff:
+                    depth = d
                     current = nID
                     normDiff = nD
                     currentNorm = nN
@@ -285,7 +284,7 @@ class Grafo:
                 path = []
                 while current is not None:
                     path.append(self.getNodeByID(current))
-                    current, normDiff = parent[(current,normDiff)]
+                    depth, current, normDiff = parent[(depth, current,normDiff)]
 
                 path.reverse()
 
@@ -293,18 +292,19 @@ class Grafo:
 
             for adj, _ in self.m_graph[current]:
                 
-                if self.getNodeByID(adj).getPos() in prohibitedPos:
+                if depth==0 and self.getNodeByID(adj).getPos() in prohibitedPos:
                     continue
 
                 parentVel = currentNode.getVel()
                 currVel   = self.getNodeByID(adj).getVel()
+                norm = currVel[0]**2 + currVel[1]**2
                 nD = 0.5*((parentVel[0]*parentVel[0] + parentVel[1]*parentVel[1]) - (currVel[0]*currVel[0] + currVel[1]*currVel[1]))
-                if (adj, nD) not in open_list and (adj,nD) not in closed_list:
-                    parent[(adj,nD)] = (current, normDiff)
+                if (depth, adj, nD,norm) not in open_list and (depth,adj,nD,norm) not in closed_list:
+                    parent[(depth+1,adj,nD)] = (depth, current, normDiff)
                     norm = (currVel[0]**2 + currVel[1]**2 +1)
-                    open_list.append((adj,nD,norm))
+                    open_list.append((depth+1,adj,nD,norm))
             
-            open_list.remove((current,normDiff,currentNorm))
-            closed_list.append((current,normDiff,currentNorm))
+            open_list.remove((depth, current,normDiff,currentNorm))
+            closed_list.append((depth, current,normDiff,currentNorm))
 
         return None

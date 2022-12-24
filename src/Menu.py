@@ -1,7 +1,6 @@
-import pygame, sys, os, subprocess, threading
+import pygame, sys, os
 from Problema import Problema
 import Mapa
-#  from Node import Node
 
 
 diretoriaMapas = "../mapas"
@@ -10,6 +9,39 @@ clock = pygame.time.Clock()
 SIZE = 700,500
 bg = pygame.image.load("../images/VectorRace.png")
 bg = pygame.transform.scale(bg, SIZE)
+
+
+class Popup():
+
+    def __init__(self, text, x=0, y=0):
+
+        font = pygame.font.Font('freesansbold.ttf', 20)
+        self.text = text
+        text_image = font.render(text, True, (0,0,0))
+
+        width, height = text_image.get_width() + 20, text_image.get_height() + 20
+        self.image = pygame.Surface((width,height))
+        self.image.fill((0,0,0))
+        self.image.fill((255,0,0), pygame.Rect(5, 5, width - 10, height-10))
+
+        self.rect = self.image.get_rect()
+         
+        text_rect = text_image.get_rect(center = self.rect.center)
+        
+        self.image.blit(text_image, text_rect)
+
+        self.rect.center = (x, y)
+
+    def draw(self, surface):
+
+        surface.blit(self.image, self.rect)
+
+    def handle_event(self, event):
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                return True
+        return False
 
 
 def printOpcoes(options, screen, selected : int | None = 0):
@@ -40,8 +72,9 @@ def getNumJog(screen, problema : Problema) -> int:
     numJogadores = 0
     numJogadoresEscolhido = False
     
+    listaAvisos = []
     opcoes = [f"Defina um numero de jogadores (max = {maxJog})", str(numJogadores)]
-    
+
     while not numJogadoresEscolhido:
 
         for event in pygame.event.get():
@@ -51,9 +84,9 @@ def getNumJog(screen, problema : Problema) -> int:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     if numJogadores <= 0:
-                        subprocess.run(["/usr/bin/notify-send", "--icon=error", "Número de Jogadores demasiado baixo"])
+                        listaAvisos.append(Popup("Nº Jogadores Demasiado Baixo (q para apagar mensagem)", screen.get_rect().centerx, screen.get_rect().centery))
                     elif numJogadores > maxJog:
-                        subprocess.run(["/usr/bin/notify-send", "--icon=error", "Número de Jogadores acima do valor permitido"])
+                        listaAvisos.append(Popup("Nº Jogadores Acima do Valor Máximo (q para apagar mensagem)", screen.get_rect().centerx, screen.get_rect().centery))
                     else:
                         numJogadoresEscolhido = True
                 if event.key == pygame.K_LEFT:
@@ -63,10 +96,16 @@ def getNumJog(screen, problema : Problema) -> int:
                     numJogadores += 1
                     opcoes[1] = str(numJogadores)
                 if event.key == pygame.K_ESCAPE:
-                    return
+                    return        
+            for popup in listaAvisos:
+                delete = popup.handle_event(event)
+                if delete:
+                    listaAvisos.remove(popup)
     
         printOpcoes(opcoes, screen, None)
         screen.blit(bg, (0, 0))
+        for popup in listaAvisos:
+            popup.draw(screen)
         clock.tick(30)
 
     return numJogadores
@@ -124,8 +163,10 @@ def competitivo(screen, problema : Problema):
     
     if competitors is None:
         return
-    
-    subprocess.run(["/usr/bin/notify-send", "--icon=warning", "Resultados vão ser calculados. Aguarde.."])
+   
+    mensagem = Popup("Resultados vão ser calculados, aguarde..", screen.get_rect().centerx, screen.get_rect().centery)
+    mensagem.draw(screen)
+    pygame.display.flip()
 
     d = problema.Competicao(competitors)
     resultList = []
@@ -238,6 +279,11 @@ def selecionarMapa(screen):
                     if opcoes[selected] == "Voltar":
                         return
                     else:
+                        popup = Popup("A gerar Grafo, por favor aguarde...", screen.get_rect().centerx, screen.get_rect().centery)
+                        popup.draw(screen)
+                        pygame.display.flip()
+
+
                         res = comecaJogo(screen, opcoes[selected])               
                         if res == 0:
                             return
@@ -276,7 +322,6 @@ def main():
         if screen.get_size() != SIZE:
             screen = pygame.display.set_mode(SIZE)
             pygame.transform.scale(screen, SIZE)
-        #  screen = pygame.display.set
         for event in pygame.event.get():
                 ## Se encontrat um quit sai da janela
             if event.type == pygame.QUIT:
@@ -287,7 +332,6 @@ def main():
                 if event.key == pygame.K_UP:
                     selected = (selected-1 + len(opcoes))%len(opcoes)
                 if event.key == pygame.K_RETURN:    
-                    #  acao = opcoes[list(opcoes.keys())[selected]]
                     if selected == 0:
                         selecionarMapa(screen)
                     else:
