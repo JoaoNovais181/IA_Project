@@ -87,8 +87,18 @@ def desenhaMapa (Map, resultList : list[tuple[str, list[Node],int]] | None = Non
     ## Iniciar o pygame ##
     pygame.init()
 
+    monitorSize = pygame.display.get_desktop_sizes()[0]
+    desiredSize = xpix*scalex + (0 if resultList is None else 200),ypix*scaley
+
+    if monitorSize[0]-40 < desiredSize[0]:
+        scalex = (monitorSize[0]-40-(0 if resultList is None else 200)) // xpix
+        desiredSize = xpix*scalex+(0 if resultList is None else 200),desiredSize[1]
+    if monitorSize[1]-40 < desiredSize[1]:
+        scaley = (monitorSize[1]-40) // ypix
+        desiredSize = desiredSize[0],ypix*scaley
+
     ## Criar a janela ##
-    screen = pygame.display.set_mode((xpix*scalex+ (0 if resultList is None else 200),(ypix*scaley)))
+    screen = pygame.display.set_mode(desiredSize)
     screen.fill((50,50,50))
     ## Definir o nome da janela ##
     pygame.display.set_caption('Vector Race')
